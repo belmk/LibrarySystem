@@ -1,14 +1,13 @@
 ﻿using AutoMapper;
 using Library.Models.Base;
 using Library.Services.Database;
-using Library.Services.Interfaces.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Library.Services.BaseServices
+namespace Library.Services.Services
 {
     public class BaseCRUDService<T, TDb, TSearch, TInsert, TUpdate> : BaseService<T, TDb, TSearch> where TDb : class where T : class where TSearch : BaseSearchObject
     {
@@ -62,4 +61,3 @@ namespace Library.Services.BaseServices
 
     }
 }
-    

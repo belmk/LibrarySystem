@@ -7,12 +7,11 @@ using System.Threading.Tasks;
 
 namespace Library.Services.Interfaces.Base
 {
-    public interface ICRUDService<TModel, TSearch, TCreateUpdate>
-        : IService<TModel, TSearch>
-        where TSearch : BaseSearchObject
+    public interface ICRUDService<T, TSearch, TInsert, TUpdate>
+        : IService<T, TSearch> where TSearch : class
     {
-        Task<TModel> InsertAsync(TCreateUpdate request);
-        Task<TModel?> UpdateAsync(int id, TCreateUpdate request);
-        Task<bool> DeleteAsync(int id);
+        Task<T> Insert(TInsert insert);
+        Task<T> Update(int id, TUpdate update);
+        Task<bool> Delete(int id);
     }
 }

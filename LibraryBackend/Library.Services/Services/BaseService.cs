@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Library.Services.BaseServices
+namespace Library.Services.Services
 {
     public class BaseService<T, TDb, TSearch> : IService<T, TSearch> where TDb : class where T : class where TSearch : BaseSearchObject
     {
@@ -34,6 +34,8 @@ namespace Library.Services.BaseServices
             query = AddInclude(query, search);
 
             result.Count = await query.CountAsync();
+
+            
 
             if (search?.Page.HasValue == true && search?.PageSize.HasValue == true)
             {

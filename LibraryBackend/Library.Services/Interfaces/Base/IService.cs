@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 
 namespace Library.Services.Interfaces.Base
 {
-    public interface IService<TModel, in TSearch>
-        where TSearch : BaseSearchObject
+    public interface IService<T, TSearch> where TSearch : class
     {
-        Task<PagedResult<TModel>> GetAsync(TSearch search);
-        Task<TModel?> GetByIdAsync(int id);
+        Task<PagedResult<T>> Get(TSearch search = null);
+        Task<T> GetById(int id);
     }
 }

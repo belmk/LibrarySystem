@@ -20,8 +20,4 @@
     <ProjectReference Include="..\Library.Models\Library.Models.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Implementations\" />
-  </ItemGroup>
-
 </Project>
