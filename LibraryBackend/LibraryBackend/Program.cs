@@ -2,10 +2,17 @@ using Library.Services.Database;
 using Library.Services.Mappings;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Library.Services.Interfaces;
+using Library.Services.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddTransient<IBookService, BookService>();
+builder.Services.AddTransient<IGenreService, GenreService>();
+builder.Services.AddTransient<IAuthorService, AuthorService>();
+builder.Services.AddTransient<IRoleService, RoleService>();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
