@@ -1,4 +1,5 @@
-﻿using Library.Services.Entities;
+﻿using Library.Models.Entities;
+using Library.Services.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,9 @@ namespace Library.Services.Database
         public DbSet<Book> Books { get; set; }
         public DbSet<Author> Authors { get; set; }
         public DbSet<Genre> Genres { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<Complaint> Complaints { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -59,9 +63,8 @@ namespace Library.Services.Database
                     PageNumber = 309,
                     AvailableNumber = 8
                 }
-
-
             );
+
             modelBuilder.Entity<Book>()
                 .HasMany(b => b.Genres)
                 .WithMany(g => g.Books)
@@ -69,6 +72,18 @@ namespace Library.Services.Database
                     new { BooksId = 1, GenresId = 1 },
                     new { BooksId = 2, GenresId = 2 }  
                 ));
+
+            modelBuilder.Entity<Complaint>()
+                .HasOne(c => c.Sender)
+                .WithMany()
+                .HasForeignKey(c => c.SenderId)
+                .OnDelete(DeleteBehavior.Restrict); 
+
+            modelBuilder.Entity<Complaint>()
+                .HasOne(c => c.Target)
+                .WithMany()
+                .HasForeignKey(c => c.TargetId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
     }

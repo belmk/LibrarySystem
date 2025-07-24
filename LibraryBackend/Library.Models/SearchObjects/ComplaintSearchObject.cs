@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace Library.Models.SearchObjects
 {
-    public class RoleSearchObject : BaseSearchObject
+    public class ComplaintSearchObject : BaseSearchObject
     {
-        public string? Name { get; set; }
+        public UserSearchObject? Sender { get; set; }
+        public UserSearchObject? Target { get; set; }
     }
 }

@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace Library.Models.SearchObjects
 {
-    public class RoleSearchObject : BaseSearchObject
+    public class SubscriptionSearchObject : BaseSearchObject
     {
-        public string? Name { get; set; }
+        public int? UserId { get; set; }
     }
 }
