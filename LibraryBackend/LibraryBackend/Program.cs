@@ -15,6 +15,10 @@ builder.Services.AddTransient<IRoleService, RoleService>();
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<ISubscriptionService, SubscriptionService>();
 builder.Services.AddTransient<IComplaintService, ComplaintService>();
+builder.Services.AddTransient<INotificationService, NotificationService>();
+builder.Services.AddTransient<IBookReviewService, BookReviewService>();
+builder.Services.AddTransient<IForumThreadService, ForumThreadService>();
+builder.Services.AddTransient<IForumCommentService, ForumCommentService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

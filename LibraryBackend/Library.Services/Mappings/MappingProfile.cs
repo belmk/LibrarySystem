@@ -1,9 +1,13 @@
 ﻿using AutoMapper;
 using Library.Models;
 using Library.Models.DTOs.Authors;
+using Library.Models.DTOs.BookReviews;
 using Library.Models.DTOs.Books;
 using Library.Models.DTOs.Complaints;
+using Library.Models.DTOs.ForumComments;
+using Library.Models.DTOs.ForumThreads;
 using Library.Models.DTOs.Genres;
+using Library.Models.DTOs.Notifications;
 using Library.Models.DTOs.Roles;
 using Library.Models.DTOs.Subscriptions;
 using Library.Models.DTOs.Users;
@@ -46,7 +50,6 @@ namespace Library.Services.Mappings
             CreateMap<User, UserDto>();
             CreateMap<UserInsertDto, User>();
             CreateMap<UserUpdateDto, User>();
-            CreateMap<UserSearchObject, User>();
 
 
             CreateMap<Subscription, SubscriptionDto>();
@@ -59,6 +62,24 @@ namespace Library.Services.Mappings
             CreateMap<ComplaintUpdateDto, Complaint>();
 
 
+            CreateMap<Notification, NotificationDto>();
+            CreateMap<NotificationInsertDto, Notification>();
+            CreateMap<NotificationUpdateDto, Notification>();
+
+
+            CreateMap<BookReview, BookReviewDto>();
+            CreateMap<BookReviewInsertDto, BookReview>();
+            CreateMap<BookReviewUpdateDto, BookReview>();
+
+
+            CreateMap<ForumThread, ForumThreadDto>();
+            CreateMap<ForumThreadInsertDto, ForumThread>();
+            CreateMap<ForumThreadUpdateDto, ForumThread>();
+
+
+            CreateMap<ForumComment, ForumCommentDto>();
+            CreateMap<ForumCommentInsertDto, ForumComment>();
+            CreateMap<ForumCommentUpdateDto, ForumComment>();
         }
     }
 }

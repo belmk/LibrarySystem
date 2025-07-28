@@ -21,6 +21,10 @@ namespace Library.Services.Database
         public DbSet<User> Users { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Complaint> Complaints { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<BookReview> BookReviews { get; set; }
+        public DbSet<ForumThread> ForumThreads { get; set; }
+        public DbSet<ForumComment> ForumComments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
