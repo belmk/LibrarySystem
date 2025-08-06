@@ -1,9 +1,12 @@
-using Library.Services.Database;
-using Library.Services.Mappings;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+using Library.Services.Database;
 using Library.Services.Interfaces;
+using Library.Services.Mappings;
 using Library.Services.Services;
+using LibraryBackend;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +34,29 @@ builder.Services.AddAutoMapper(cfg =>
 builder.Services.AddDbContext<LibraryDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("basicAuth", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "basic"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                { Type = ReferenceType.SecurityScheme, Id = "basicAuth" }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+builder.Services.AddAuthentication("BasicAuthentication")
+       .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(
+           "BasicAuthentication", null);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -42,6 +68,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

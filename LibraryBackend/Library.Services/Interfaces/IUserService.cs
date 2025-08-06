@@ -11,5 +11,6 @@ namespace Library.Services.Interfaces
 {
     public interface IUserService : ICRUDService<UserDto, UserSearchObject, UserInsertDto, UserUpdateDto>
     {
+        Task<UserDto> Authenticate(string username, string password);
     }
 }
