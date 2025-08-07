@@ -10,6 +10,7 @@ namespace Library.Models.DTOs.ForumThreads
 {
     public class ForumThreadDto
     {
+        public int Id { get; set; }
         public UserDto User { get; set; }
         public BookDto Book { get; set; }
         public string Title { get; set; }
