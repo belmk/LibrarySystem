@@ -16,5 +16,7 @@ namespace Library.Models.DTOs.BookReviews
 
         public int BookId { get; set; }
         public int UserId { get; set; }
+        public bool IsApproved { get; set; } = false;
+
     }
 }

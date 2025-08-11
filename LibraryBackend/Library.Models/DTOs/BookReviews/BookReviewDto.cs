@@ -17,5 +17,6 @@ namespace Library.Models.DTOs.BookReviews
 
         public BookDto Book { get; set; }
         public UserDto User { get; set; }
+        public bool IsApproved { get; set; }
     }
 }

@@ -34,7 +34,7 @@ namespace Library.Services.Migrations
 
                     b.HasIndex("GenresId");
 
-                    b.ToTable("BookGenre", (string)null);
+                    b.ToTable("BookGenre");
 
                     b.HasData(
                         new
@@ -47,6 +47,71 @@ namespace Library.Services.Migrations
                             BooksId = 2,
                             GenresId = 2
                         });
+                });
+
+            modelBuilder.Entity("Library.Models.Entities.BookLoan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LoanDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ReturnDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("BookLoans");
+                });
+
+            modelBuilder.Entity("Library.Models.Entities.BookReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ReviewDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("BookReviews");
                 });
 
             modelBuilder.Entity("Library.Models.Entities.Complaint", b =>
@@ -79,7 +144,67 @@ namespace Library.Services.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("Complaints", (string)null);
+                    b.ToTable("Complaints");
+                });
+
+            modelBuilder.Entity("Library.Models.Entities.ForumComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CommentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ForumThreadId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ForumThreadId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ForumComments");
+                });
+
+            modelBuilder.Entity("Library.Models.Entities.ForumThread", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ThreadDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ForumThreads");
                 });
 
             modelBuilder.Entity("Library.Models.Entities.Notification", b =>
@@ -108,7 +233,7 @@ namespace Library.Services.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("Library.Models.Entities.Subscription", b =>
@@ -138,7 +263,7 @@ namespace Library.Services.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Subscriptions", (string)null);
+                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("Library.Models.Entities.User", b =>
@@ -186,7 +311,7 @@ namespace Library.Services.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Library.Services.Entities.Author", b =>
@@ -207,7 +332,7 @@ namespace Library.Services.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Authors", (string)null);
+                    b.ToTable("Authors");
 
                     b.HasData(
                         new
@@ -253,7 +378,7 @@ namespace Library.Services.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Books", (string)null);
+                    b.ToTable("Books");
 
                     b.HasData(
                         new
@@ -290,7 +415,7 @@ namespace Library.Services.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Genres", (string)null);
+                    b.ToTable("Genres");
 
                     b.HasData(
                         new
@@ -319,7 +444,7 @@ namespace Library.Services.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
 
                     b.HasData(
                         new
@@ -349,6 +474,44 @@ namespace Library.Services.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Library.Models.Entities.BookLoan", b =>
+                {
+                    b.HasOne("Library.Services.Entities.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Library.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Library.Models.Entities.BookReview", b =>
+                {
+                    b.HasOne("Library.Services.Entities.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Library.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Library.Models.Entities.Complaint", b =>
                 {
                     b.HasOne("Library.Models.Entities.User", "Sender")
@@ -366,6 +529,44 @@ namespace Library.Services.Migrations
                     b.Navigation("Sender");
 
                     b.Navigation("Target");
+                });
+
+            modelBuilder.Entity("Library.Models.Entities.ForumComment", b =>
+                {
+                    b.HasOne("Library.Models.Entities.ForumThread", "ForumThread")
+                        .WithMany()
+                        .HasForeignKey("ForumThreadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Library.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ForumThread");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Library.Models.Entities.ForumThread", b =>
+                {
+                    b.HasOne("Library.Services.Entities.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Library.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Library.Models.Entities.Notification", b =>

@@ -25,6 +25,7 @@ namespace Library.Services.Database
         public DbSet<BookReview> BookReviews { get; set; }
         public DbSet<ForumThread> ForumThreads { get; set; }
         public DbSet<ForumComment> ForumComments { get; set; }
+        public DbSet<BookLoan> BookLoans { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -87,6 +88,24 @@ namespace Library.Services.Database
                 .HasOne(c => c.Target)
                 .WithMany()
                 .HasForeignKey(c => c.TargetId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ForumComment>()
+                .HasOne(fc => fc.User)
+                .WithMany()
+                .HasForeignKey(fc => fc.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ForumThread>()
+                .HasOne(ft => ft.User)
+                .WithMany()
+                .HasForeignKey(ft => ft.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ForumComment>()
+                .HasOne(fc => fc.ForumThread)
+                .WithMany()
+                .HasForeignKey(fc => fc.ForumThreadId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
 

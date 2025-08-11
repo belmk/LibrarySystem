@@ -10,5 +10,7 @@ namespace Library.Models.DTOs.BookReviews
     {
         public int Rating {  get; set; }
         public string Comment { get; set; }
+        public bool IsApproved { get; set; }
+
     }
 }

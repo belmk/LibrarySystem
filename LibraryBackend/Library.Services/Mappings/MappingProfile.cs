@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Library.Models;
 using Library.Models.DTOs.Authors;
+using Library.Models.DTOs.BookLoans;
 using Library.Models.DTOs.BookReviews;
 using Library.Models.DTOs.Books;
 using Library.Models.DTOs.Complaints;
@@ -80,6 +81,11 @@ namespace Library.Services.Mappings
             CreateMap<ForumComment, ForumCommentDto>();
             CreateMap<ForumCommentInsertDto, ForumComment>();
             CreateMap<ForumCommentUpdateDto, ForumComment>();
+
+
+            CreateMap<BookLoan, BookLoanDto>();
+            CreateMap<BookLoanInsertDto, BookLoan>();
+            CreateMap<BookLoanUpdateDto, BookLoan>();
         }
     }
 }
