@@ -26,6 +26,7 @@ namespace Library.Services.Database
         public DbSet<ForumThread> ForumThreads { get; set; }
         public DbSet<ForumComment> ForumComments { get; set; }
         public DbSet<BookLoan> BookLoans { get; set; }
+        public DbSet<Activity> Activities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Library.Models;
+using Library.Models.DTOs.Activities;
 using Library.Models.DTOs.Authors;
 using Library.Models.DTOs.BookLoans;
 using Library.Models.DTOs.BookReviews;
@@ -86,6 +87,11 @@ namespace Library.Services.Mappings
             CreateMap<BookLoan, BookLoanDto>();
             CreateMap<BookLoanInsertDto, BookLoan>();
             CreateMap<BookLoanUpdateDto, BookLoan>();
+
+
+            CreateMap<Activity, ActivityDto>();
+            CreateMap<ActivityInsertDto, Activity>();
+            CreateMap<ActivityUpdateDto, Activity>();
         }
     }
 }

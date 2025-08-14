@@ -33,23 +33,32 @@ namespace Library.Services.Services
 
             if (!string.IsNullOrWhiteSpace(search?.LastName))
             {
-                filteredQuery = filteredQuery.Where(x => x.FirstName.Contains(search.LastName));
+                filteredQuery = filteredQuery.Where(x => x.LastName.Contains(search.LastName));
             }
 
             if (!string.IsNullOrWhiteSpace(search?.Username))
             {
-                filteredQuery = filteredQuery.Where(x => x.FirstName.Contains(search.Username));
+                filteredQuery = filteredQuery.Where(x => x.Username.Contains(search.Username));
             }
 
             if (!string.IsNullOrWhiteSpace(search?.Email))
             {
-                filteredQuery = filteredQuery.Where(x => x.FirstName.Contains(search.Email));
+                filteredQuery = filteredQuery.Where(x => x.Email.Contains(search.Email));
             }
 
             if (search.IsActive.HasValue)
             {
                 filteredQuery = filteredQuery.Where(x => x.IsActive == search.IsActive);
             }
+
+            if (search.RegistrationDate != null && search.RegistrationDate != DateOnly.MinValue)
+            {
+                var dateTimeValue = search.RegistrationDate.ToDateTime(TimeOnly.MinValue);
+
+                filteredQuery = filteredQuery.Where(x =>
+                    x.RegistrationDate.Date == dateTimeValue.Date);
+            }
+
             return filteredQuery;
         }
 

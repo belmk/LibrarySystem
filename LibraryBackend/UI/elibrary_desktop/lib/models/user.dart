@@ -9,6 +9,8 @@ class User {
   String? firstName;
   String? lastName;
   String? username;
+  String? email;
+  DateTime? registrationDate;
   Role? role;
 
   User(this.id, this.firstName, this.lastName, this.username, this.role);

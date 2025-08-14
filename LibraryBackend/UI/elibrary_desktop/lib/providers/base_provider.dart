@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:elibrary_desktop/models/search_result.dart';
 import 'package:elibrary_desktop/utils/util.dart';
 import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
@@ -8,104 +9,108 @@ import 'package:flutter/foundation.dart';
 abstract class BaseProvider<T> with ChangeNotifier {
   @protected
   String endpoint = "";
+
   static late String baseUrl;
-  static late http.Client _httpClient;
-
-  static void initializeHttpClient(http.Client client) {
-    _httpClient = client;
-  }
-
-  http.Client get client => _httpClient;
 
   BaseProvider(String endpoint) {
     this.endpoint = endpoint;
   }
 
-  Future<T?> getById(int id, [dynamic additionalData]) async {
-    var url = Uri.parse("$baseUrl$endpoint/$id");
-
-    Map<String, String> headers = createHeaders();
-
-    var response = await http.get(url, headers: headers);
-
-    if (isValidResponseCode(response)) {
-      var data = jsonDecode(response.body);
-      return fromJson(data);
-    } else {
-      return null;
-    }
-  }
-
-  Future<List<T>> get([dynamic search]) async {
+  Future<SearchResult<T>> get({dynamic filter}) async {
     var url = "$baseUrl$endpoint";
 
-    if (search != null) {
-      String queryString = getQueryString(search);
-      url = url + "?" + queryString;
+    if (filter != null) {
+      var queryString = getQueryString(filter);
+      url = "$url?$queryString";
     }
 
     var uri = Uri.parse(url);
+    var headers = createHeaders();
 
-    Map<String, String> headers = createHeaders();
     var response = await http.get(uri, headers: headers);
-    print("done $response");
-    if (isValidResponseCode(response)) {
+
+    if (isValidResponse(response)) {
       var data = jsonDecode(response.body);
-      return data['result'].map((x) => fromJson(x)).cast<T>().toList();
+
+      var result = SearchResult<T>();
+
+      result.count = data['count'];
+
+      for (var item in data['result']) {
+        result.result.add(fromJson(item));
+      }
+
+      return result;
     } else {
-      throw Exception("Exception... handle this gracefully");
+      throw new Exception("Unknown error");
     }
+    // print("response: ${response.request} ${response.statusCode}, ${response.body}");
   }
 
-  Future<T?> insert(dynamic request) async {
+  Future<T> insert(dynamic request) async {
     var url = "$baseUrl$endpoint";
     var uri = Uri.parse(url);
+    var headers = createHeaders();
 
-    Map<String, String> headers = createHeaders();
     var jsonRequest = jsonEncode(request);
     var response = await http.post(uri, headers: headers, body: jsonRequest);
 
-    if (isValidResponseCode(response)) {
+    if (isValidResponse(response)) {
       var data = jsonDecode(response.body);
       return fromJson(data);
     } else {
-      return null;
+      throw new Exception("Unknown error");
     }
   }
 
-  Future<T?> update(int id, [dynamic request]) async {
+  Future<T> update(int id, [dynamic request]) async {
     var url = "$baseUrl$endpoint/$id";
     var uri = Uri.parse(url);
+    var headers = createHeaders();
 
-    Map<String, String> headers = createHeaders();
+    var jsonRequest = jsonEncode(request);
+    var response = await http.put(uri, headers: headers, body: jsonRequest);
 
-    var response = await http.put(
-      uri,
-      headers: headers,
-      body: jsonEncode(request),
-    );
-
-    if (isValidResponseCode(response)) {
+    if (isValidResponse(response)) {
       var data = jsonDecode(response.body);
       return fromJson(data);
     } else {
-      return null;
+      throw new Exception("Unknown error");
     }
   }
 
-  Future<Response> post(String path, dynamic request) async {
-    final url = '$baseUrl$endpoint/$path';
-    final uri = Uri.parse(url);
+  Future<void> delete(int id) async {
+    var url = "$baseUrl$endpoint/$id";
+    var uri = Uri.parse(url);
+    var headers = createHeaders();
 
-    final headers = createHeaders();
-    final body = jsonEncode(request);
+    var response = await http.delete(uri, headers: headers);
 
-    return await http.post(uri, headers: headers, body: body);
+    if (!isValidResponse(response)) {
+      throw Exception("Delete failed");
+    }
   }
 
-  static Map<String, String> createHeaders() {
-    String? username = Authorization.username;
-    String? password = Authorization.password;
+  T fromJson(data) {
+    throw Exception("Method not implemented");
+  }
+
+  bool isValidResponse(Response response) {
+    if (response.statusCode < 299) {
+      return true;
+    } else if (response.statusCode == 401) {
+      throw new Exception("Unauthorized");
+    } else {
+      print(response.body);
+      throw new Exception("Something bad happened please try again");
+    }
+  }
+
+  Map<String, String> createHeaders() {
+    String username = Authorization.username ?? "";
+    String password = Authorization.password ?? "";
+
+    print("passed creds: $username, $password");
 
     String basicAuth =
         "Basic ${base64Encode(utf8.encode('$username:$password'))}";
@@ -114,11 +119,8 @@ abstract class BaseProvider<T> with ChangeNotifier {
       "Content-Type": "application/json",
       "Authorization": basicAuth,
     };
-    return headers;
-  }
 
-  T fromJson(data) {
-    throw Exception("Override method");
+    return headers;
   }
 
   String getQueryString(
@@ -144,7 +146,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
         }
         query += '$prefix$key=$encoded';
       } else if (value is DateTime) {
-        query += '$prefix$key=${(value).toIso8601String()}';
+        query += '$prefix$key=${(value as DateTime).toIso8601String()}';
       } else if (value is List || value is Map) {
         if (value is List) value = value.asMap();
         value.forEach((k, v) {
@@ -157,39 +159,5 @@ abstract class BaseProvider<T> with ChangeNotifier {
       }
     });
     return query;
-  }
-
-  bool isValidResponseCode(Response response) {
-    if (response.statusCode == 200) {
-      if (response.body != "") {
-        return true;
-      } else {
-        return false;
-      }
-    } else if (response.statusCode == 204) {
-      return true;
-    } else if (response.statusCode >= 400 && response.statusCode < 500) {
-      String errorMessage = "Došlo je do greške.";
-      if (response.body.isNotEmpty) {
-        try {
-          var errorData = jsonDecode(response.body);
-          if (errorData is Map && errorData.containsKey('message')) {
-            errorMessage = errorData['message'];
-          } else {
-            errorMessage = response.body;
-          }
-        } catch (e) {
-          errorMessage = response.body;
-        }
-      } else {
-        errorMessage =
-            response.reasonPhrase ?? "Greška: ${response.statusCode}";
-      }
-      throw Exception(errorMessage);
-    } else if (response.statusCode == 500) {
-      throw Exception("Greška na serveru. Molimo pokušajte kasnije.");
-    } else {
-      throw Exception("Dogodila se nepoznata greška.");
-    }
   }
 }
