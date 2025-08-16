@@ -1,3 +1,4 @@
+import 'package:elibrary_desktop/providers/auth_provider.dart';
 import 'package:elibrary_desktop/providers/base_provider.dart';
 import 'package:elibrary_desktop/providers/book_provider.dart';
 import 'package:elibrary_desktop/screens/login_screen.dart';
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => BookProvider())],
+      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
       child: MaterialApp(
         title: 'Admin Panel',
         theme: ThemeData(primarySwatch: Colors.blue),

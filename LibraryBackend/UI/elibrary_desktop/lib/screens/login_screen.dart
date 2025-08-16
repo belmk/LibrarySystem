@@ -1,3 +1,4 @@
+import 'package:elibrary_desktop/providers/auth_provider.dart';
 import 'package:elibrary_desktop/providers/book_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,39 +15,53 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>(); 
+
   bool _loading = false;
 
   void _login() async {
-    setState(() => _loading = true);
-    Authorization.username = _usernameController.text;
-    Authorization.password = _passwordController.text;
+  if (!_formKey.currentState!.validate()) {
+    return;
+  }
 
-    final productProvider = context.read<BookProvider>();
+  setState(() => _loading = true);
 
-    try {
-      await productProvider.get();
+  final authProvider = context.read<AuthProvider>();
+
+  try {
+    final success = await authProvider.login(
+      _usernameController.text,
+      _passwordController.text,
+    );
+
+    if (success) {
+      // Set credentials globally if needed
+      Authorization.username = _usernameController.text;
+      Authorization.password = _passwordController.text;
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const AdminHomeScreen()),
       );
-    } catch (e) {
-      showDialog(
-        context: context,
-        builder:
-            (_) => AlertDialog(
-              title: Text("Login failed"),
-              content: Text(e.toString()),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text("OK"),
-                ),
-              ],
-            ),
-      );
-    } finally {
-      setState(() => _loading = false);
     }
+  } catch (e) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Login failed"),
+        content: Text(e.toString().replaceAll("Exception: ", "")),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  } finally {
+    setState(() => _loading = false);
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -55,34 +70,49 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Center(
         child: Container(
           padding: const EdgeInsets.all(16),
-          constraints: BoxConstraints(maxWidth: 400),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: "Username",
-                  prefixIcon: Icon(Icons.person),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: "Password",
-                  prefixIcon: Icon(Icons.lock),
-                ),
-              ),
-              const SizedBox(height: 20),
-              _loading
-                  ? CircularProgressIndicator()
-                  : ElevatedButton(
-                    onPressed: _login,
-                    child: const Text("Login"),
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Form(
+            key: _formKey, 
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: const InputDecoration(
+                    labelText: "Korisničko ime",
+                    prefixIcon: Icon(Icons.person),
                   ),
-            ],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Polje za korisničko ime ne smije biti prazno.';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: "Lozinka",
+                    prefixIcon: Icon(Icons.lock),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Polje za lozinku ne smije biti prazno.';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                _loading
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: _login,
+                        child: const Text("Login"),
+                      ),
+              ],
+            ),
           ),
         ),
       ),

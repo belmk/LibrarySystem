@@ -23,6 +23,7 @@ builder.Services.AddTransient<IBookReviewService, BookReviewService>();
 builder.Services.AddTransient<IForumThreadService, ForumThreadService>();
 builder.Services.AddTransient<IForumCommentService, ForumCommentService>();
 builder.Services.AddTransient<IActivityService,  ActivityService>();
+builder.Services.AddTransient<IAuthService, AuthService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

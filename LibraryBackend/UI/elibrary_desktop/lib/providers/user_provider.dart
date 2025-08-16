@@ -7,3 +7,4 @@ class UserProvider extends BaseProvider<User> {
   @override
   User fromJson(data) => User.fromJson(data);
 }
+
