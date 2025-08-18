@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Login failed"),
+        title: const Text("Neuspješan login"),
         content: Text(e.toString().replaceAll("Exception: ", "")),
         actions: [
           TextButton(

@@ -13,7 +13,15 @@ class User {
   DateTime? registrationDate;
   Role? role;
 
-  User(this.id, this.firstName, this.lastName, this.username, this.role);
+  User({
+    this.id,
+    this.firstName,
+    this.lastName,
+    this.username,
+    this.email,
+    this.registrationDate,
+    this.role,
+  });
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
   Map<String, dynamic> toJson() => _$UserToJson(this);

@@ -1,6 +1,8 @@
 import 'package:elibrary_desktop/models/user.dart';
 import 'package:elibrary_desktop/providers/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'user_edit_screen.dart';
+import 'package:elibrary_desktop/utils/datetime_helper.dart';
 
 class UserListScreen extends StatefulWidget {
   const UserListScreen({super.key});
@@ -39,6 +41,43 @@ void dispose() {
   _lastNameController.dispose();
   _dateController.dispose();
   super.dispose();
+}
+
+void _confirmDelete(User user) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text("Potvrda"),
+      content: Text("Da li želite da obrišete korisnika '${user.username}'?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(), // Close dialog
+          child: const Text("Ne"),
+        ),
+        TextButton(
+          onPressed: () async {
+            Navigator.of(context).pop(); // Close dialog
+            await _deleteUser(user.id!); // Call delete function
+          },
+          child: const Text("Da"),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _deleteUser(int id) async {
+  try {
+    await _userProvider.delete(id); // Call provider method
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Korisnik je uspješno obrisan.")),
+    );
+    _loadUsers(); // Reload user list
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Greška pri brisanju korisnika: $e")),
+    );
+  }
 }
 
 @override
@@ -190,7 +229,7 @@ const SizedBox(width: 8),
                     children: [
                       const Icon(Icons.calendar_today, size: 18, color: Colors.blue),
                       const SizedBox(width: 8),
-                      Text(user.registrationDate.toString()),
+                      Text(DateTimeHelper.formatDateTime(user.registrationDate)),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -206,17 +245,36 @@ const SizedBox(width: 8),
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.orange),
-                        tooltip: "Uredi",
-                        onPressed: () {
-                          // Implement your edit action
-                        },
-                      ),
+  icon: const Icon(Icons.edit, color: Colors.orange),
+  tooltip: "Uredi",
+  onPressed: () {
+    showDialog(
+      context: context,
+      builder: (_) => UserFormDialog(
+        user: user,
+        onSave: (updatedUser) async {
+          try {
+            await _userProvider.update(updatedUser.id!, updatedUser.toJson());
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Korisnik uspješno ažuriran")),
+            );
+            _loadUsers();
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Greška pri ažuriranju korisnika: $e")),
+            );
+          }
+        },
+      ),
+    );
+  },
+),
+
                       IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         tooltip: "Obriši",
                         onPressed: () {
-                          // Implement your delete action
+                          _confirmDelete(user);
                         },
                       ),
                     ],
@@ -232,7 +290,6 @@ const SizedBox(width: 8),
 ),
 
 
-
         _buildPaginationControls(),
       ],
     ),
@@ -241,6 +298,7 @@ const SizedBox(width: 8),
 
 
    Future<void> _loadUsers({bool showLoading = true}) async {
+    
     if (showLoading) {
       setState(() {
         _isLoading = true;
@@ -264,6 +322,10 @@ const SizedBox(width: 8),
         setState(() {
           _users = result.result;
           _totalCount = result.count ?? 0;
+
+          if (_currentPage > _totalPages) {
+    _currentPage = _totalPages;
+  }
           _isLoading = false;
         });
       }
@@ -294,19 +356,22 @@ Widget _buildPaginationControls() {
             : null,
         icon: const Icon(Icons.arrow_back),
       ),
-      Text("Stranica $_currentPage"),
+      Text("Stranica $_currentPage od $_totalPages"),
       IconButton(
-        onPressed: () {
-          setState(() {
-            _currentPage++;
-          });
-          _loadUsers();
-        },
+        onPressed: _currentPage < _totalPages
+            ? () {
+                setState(() {
+                  _currentPage++;
+                });
+                _loadUsers();
+              }
+            : null, 
         icon: const Icon(Icons.arrow_forward),
       ),
     ],
   );
 }
+
 
 }
 

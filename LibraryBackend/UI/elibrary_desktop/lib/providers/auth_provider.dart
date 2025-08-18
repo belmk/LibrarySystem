@@ -26,7 +26,7 @@ class AuthProvider with ChangeNotifier {
 
         return true;
       } else if (response.statusCode == 401) {
-        throw Exception("Invalid username or password.");
+        throw Exception("Pogrešno korisničko ime ili lozinka.");
       } else {
         final error = jsonDecode(response.body);
         throw Exception(error['message'] ?? "Login failed.");

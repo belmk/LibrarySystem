@@ -54,6 +54,7 @@ namespace Library.Services.Mappings
             CreateMap<UserUpdateDto, User>();
 
 
+
             CreateMap<Subscription, SubscriptionDto>();
             CreateMap<SubscriptionInsertDto, Subscription>();
             CreateMap<SubscriptionUpdateDto, Subscription>();
