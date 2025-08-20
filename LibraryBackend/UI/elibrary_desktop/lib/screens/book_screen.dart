@@ -1,3 +1,4 @@
+import 'package:elibrary_desktop/screens/book_create_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:elibrary_desktop/models/book.dart';
 import 'package:elibrary_desktop/models/genre.dart';
@@ -130,6 +131,22 @@ Future<void> _deleteBook(int id) async {
 @override
 Widget build(BuildContext context) {
   return Scaffold(
+    floatingActionButton: FloatingActionButton(
+    onPressed: () async {
+      final result = await showDialog(
+        context: context,
+        builder: (context) => const BookFormScreen(),
+      );
+
+      if (result == true) {
+        _loadBooks(); // refresh list if a new book was added
+      }
+
+      print('Create new book');
+    },
+    child: const Icon(Icons.add),
+    tooltip: 'Dodaj novu knjigu',
+  ),
     body: Padding(
       padding: const EdgeInsets.all(0.0),
       child: Column(
@@ -206,9 +223,17 @@ Widget build(BuildContext context) {
                           final book = _books[index];
                           return BookCard(
                             book: book,
-                            onEdit: () {
-                              // TODO: Navigate to edit screen or open a form
-                              print('Edit book: ${book.title}');
+                            onEdit: () async {
+                            final result = await showDialog(
+                              context: context,
+                              builder: (_) => BookFormScreen(book: book),
+                            );
+
+                            // Only reload if something was actually edited (e.g. result is true)
+                            if (result == true) {
+                              _loadBooks();
+                            }
+
                             },
                             onDelete: () {
                               _confirmDelete(book);
@@ -309,7 +334,7 @@ class BookCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               genreNames,
-              style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

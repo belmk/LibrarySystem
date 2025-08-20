@@ -26,6 +26,25 @@ namespace Library.Services.Services
 
             entity.Genres = genres;
         }
+
+        public override async Task BeforeUpdate(Book entity, BookUpdateDto update)
+        {
+            _context.Entry(entity).Collection(e => e.Genres).Load();
+
+            entity.Genres.Clear();
+            
+            var newGenres = await _context.Genres
+                .Where(g => update.GenreIds.Contains(g.Id))
+                .ToListAsync();
+
+            foreach (var genre in newGenres)
+            {
+                entity.Genres.Add(genre);
+            }
+        }
+
+
+
         public override IQueryable<Book> AddFilter(IQueryable<Book> query, BookSearchObject? search = null)
         {
             var filteredQuery = base.AddFilter(query, search);
