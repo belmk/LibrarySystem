@@ -1,4 +1,5 @@
-﻿using Library.Models.DTOs.Genres;
+﻿using Library.Models.DTOs.Authors;
+using Library.Models.DTOs.Genres;
 using Library.Services.Entities;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace Library.Models.DTOs.Books
     public class BookDto
     {
         public int Id { get; set; }
-        public int AuthorId { get; set; }
+        public AuthorDto Author { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public int PageNumber { get; set; }

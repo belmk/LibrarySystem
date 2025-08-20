@@ -1,3 +1,4 @@
+import 'package:elibrary_desktop/screens/book_screen.dart';
 import 'package:elibrary_desktop/screens/user_screen.dart';
 import 'package:elibrary_desktop/widgets/admin_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       case 0:
         currentTitle = "Korisnici";
         currentScreen = const UserListScreen();
+      
+      case 1:
+        currentTitle = "Skladište";
+        currentScreen = const BookListScreen();
+
       default:
         currentTitle = "Početna";
         currentScreen = const Center(child: Text("Nepoznata sekcija"));

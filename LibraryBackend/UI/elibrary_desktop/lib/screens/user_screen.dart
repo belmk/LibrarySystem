@@ -23,7 +23,7 @@ class _UserListScreenState extends State<UserListScreen> {
   bool _isLoading = true;
   String? _error;
   int _currentPage = 1;
-  int _pageSize = 10;
+  int _pageSize = 5;
   int _totalCount = 0;
 
   int get _totalPages => _totalCount > 0 ? (_totalCount / _pageSize).ceil() : 1;
@@ -68,11 +68,11 @@ void _confirmDelete(User user) {
 
 Future<void> _deleteUser(int id) async {
   try {
-    await _userProvider.delete(id); // Call provider method
+    await _userProvider.delete(id); 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Korisnik je uspješno obrisan.")),
     );
-    _loadUsers(); // Reload user list
+    _loadUsers(); 
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Greška pri brisanju korisnika: $e")),
