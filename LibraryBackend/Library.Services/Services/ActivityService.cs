@@ -35,6 +35,11 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.Description.Contains(search.Description));
             }
 
+            if (search?.UserId != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.UserId ==  search.UserId);
+            }
+
             return filteredQuery;
         }
     }

@@ -10,6 +10,7 @@ namespace Library.Models.SearchObjects
 {
     public class ActivitySearchObject : BaseSearchObject
     {
+        public int? UserId { get; set; }
         public string? Description { get; set; }
         public string? Email { get; set; }
     }

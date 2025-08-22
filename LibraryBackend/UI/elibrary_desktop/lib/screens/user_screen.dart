@@ -1,5 +1,6 @@
 import 'package:elibrary_desktop/models/user.dart';
 import 'package:elibrary_desktop/providers/user_provider.dart';
+import 'package:elibrary_desktop/screens/user_activity_screen.dart';
 import 'package:flutter/material.dart';
 import 'user_edit_screen.dart';
 import 'package:elibrary_desktop/utils/datetime_helper.dart';
@@ -241,8 +242,11 @@ const SizedBox(width: 8),
                         icon: const Icon(Icons.info, color: Colors.blue),
                         tooltip: "Detalji",
                         onPressed: () {
-                          // Implement your details action
-                        },
+                        showDialog(
+                          context: context,
+                          builder: (_) => UserActivityDialog(user: user),
+                        );
+                      },
                       ),
                       IconButton(
   icon: const Icon(Icons.edit, color: Colors.orange),
