@@ -86,14 +86,24 @@ class _UserActivityDialogState extends State<UserActivityDialog> {
                           : SingleChildScrollView(
                               child: DataTable(
                                 columns: const [
-                                  DataColumn(label: Text('ID')),
                                   DataColumn(label: Text('Opis')),
                                   DataColumn(label: Text('Datum aktivnosti')),
                                 ],
                                 rows: _activities.map((activity) {
                                   return DataRow(cells: [
-                                    DataCell(Text(activity.id?.toString() ?? '-')),
-                                    DataCell(Text(activity.description ?? '-')),
+                                    DataCell(
+                                    SizedBox(
+                                      width: 300,
+                                      child: Tooltip(
+                                        message: activity.description ?? '-',
+                                        child: Text(
+                                          activity.description ?? '-',
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                     DataCell(Text(
                                       DateTimeHelper.formatDateTime(activity.activityDate),
                                     )),

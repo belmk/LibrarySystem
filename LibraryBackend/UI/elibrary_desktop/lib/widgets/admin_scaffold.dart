@@ -17,16 +17,17 @@ class AdminScaffold extends StatelessWidget {
   }) : super(key: key);
 
   static const List<Map<String, dynamic>> _menuItems = [
-    {'icon': Icons.movie, 'label': 'Korisnici'},
-    {'icon': Icons.person, 'label': 'Skladište'},
-    {'icon': Icons.theater_comedy, 'label': 'Zamjena knjiga'},
-    {'icon': Icons.theaters, 'label': 'Korisničke knjige'},
-    {'icon': Icons.fastfood, 'label': 'Žalbe'},
-    {'icon': Icons.event, 'label': 'Evidencija posudbi'},
-    {'icon': Icons.people, 'label': 'Dashboard'},
-    {'icon': Icons.book, 'label': 'Recenzije'},
-    {'icon': Icons.category, 'label': 'Forum'},
-  ];
+  {'icon': Icons.people, 'label': 'Korisnici'},              
+  {'icon': Icons.inventory, 'label': 'Skladište'},           
+  {'icon': Icons.swap_horiz, 'label': 'Zamjena knjiga'},     
+  {'icon': Icons.menu_book, 'label': 'Korisničke knjige'},   
+  {'icon': Icons.report_problem, 'label': 'Žalbe'},         
+  {'icon': Icons.assignment, 'label': 'Evidencija posudbi'}, 
+  {'icon': Icons.rate_review, 'label': 'Recenzije'},         
+  {'icon': Icons.forum, 'label': 'Forum'},                   
+  {'icon': Icons.dashboard, 'label': 'Dashboard'},           
+];
+
 
   @override
   Widget build(BuildContext context) {

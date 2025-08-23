@@ -3,6 +3,7 @@ import 'package:elibrary_desktop/providers/base_provider.dart';
 import 'package:elibrary_desktop/providers/book_provider.dart';
 import 'package:elibrary_desktop/screens/login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 
@@ -21,6 +22,7 @@ Future<void> main() async {
       'Warning: API_BASE_URL not found in .env. Using default: ${BaseProvider.baseUrl}',
     );
   }
+  //debugPaintSizeEnabled = true;
   runApp(MyApp());
 }
 
