@@ -23,7 +23,8 @@ namespace Library.Services.Services
             var filteredQuery = base.AddFilter(query, search);
 
             filteredQuery = filteredQuery
-                .Include(x => x.User);
+                .Include(x => x.User)
+                .Include(x => x.Book);
 
             if (!string.IsNullOrWhiteSpace(search?.Username))
             {
