@@ -51,13 +51,14 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.IsActive == search.IsActive);
             }
 
-            if (search.RegistrationDate != null && search.RegistrationDate != DateOnly.MinValue)
+            if (search?.RegistrationDate != null && search.RegistrationDate != DateOnly.MinValue)
             {
                 var dateTimeValue = search.RegistrationDate.ToDateTime(TimeOnly.MinValue);
 
                 filteredQuery = filteredQuery.Where(x =>
                     x.RegistrationDate.Date == dateTimeValue.Date);
             }
+
 
             return filteredQuery;
         }

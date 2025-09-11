@@ -36,6 +36,21 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.User.Email.Contains(search.Email));
             }
 
+            if (search?.ReviewDate != null && search.ReviewDate != DateTime.MinValue)
+            {
+                filteredQuery = filteredQuery.Where(x=>x.ReviewDate.Date.Equals(search.ReviewDate.Value.Date));
+            }
+
+            if(search?.IsApproved != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.IsApproved == search.IsApproved);
+            }
+
+            if (search?.IsDenied != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.IsDenied == search.IsDenied);
+            }
+
             return filteredQuery;
         }
     }

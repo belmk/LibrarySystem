@@ -20,6 +20,7 @@ namespace Library.Models.Entities
         public string PasswordSalt { get; set; }
         public bool IsActive { get; set; }
         public DateTime RegistrationDate { get; set; }
+        public int WarningNumber { get; set; }
 
     }
 }

@@ -20,5 +20,6 @@ namespace Library.Models.Entities
         public string Comment { get; set; }
         public DateTime ReviewDate { get; set; }
         public bool IsApproved { get; set; }
+        public bool IsDenied { get; set; }
     }
 }

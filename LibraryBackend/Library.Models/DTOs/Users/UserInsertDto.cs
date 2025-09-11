@@ -16,5 +16,7 @@ namespace Library.Models.DTOs.Users
         public string Email { get; set; }
         public string Password { get; set; }
         public string ConfirmPassword { get; set; }
+        public int WarningNumber { get; set; } = 0;
+
     }
 }

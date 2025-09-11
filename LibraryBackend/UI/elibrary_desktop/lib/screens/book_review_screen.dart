@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:elibrary_desktop/models/book_review.dart';
 import 'package:elibrary_desktop/providers/book_review_provider.dart';
+import 'package:elibrary_desktop/providers/user_provider.dart';
 
 class BookReviewScreen extends StatefulWidget {
   const BookReviewScreen({Key? key}) : super(key: key);
@@ -12,6 +13,7 @@ class BookReviewScreen extends StatefulWidget {
 
 class _BookReviewScreenState extends State<BookReviewScreen> {
   final BookReviewProvider _reviewProvider = BookReviewProvider();
+  final UserProvider _userProvider = UserProvider();
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -37,7 +39,9 @@ class _BookReviewScreenState extends State<BookReviewScreen> {
       final result = await _reviewProvider.get(filter: {
         "Username": _nameController.text.trim(),
         "Email": _emailController.text.trim(),
-        //"ReviewDate": _selectedDate?.toIso8601String(),
+        "ReviewDate": _selectedDate?.toIso8601String(),
+        "IsApproved": false,
+        "IsDenied": false,
       });
 
       setState(() {
@@ -67,20 +71,66 @@ class _BookReviewScreenState extends State<BookReviewScreen> {
     }
   }
 
-  void _acceptReview(BookReview review) {
-    // TODO: Implement API logic
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Recenzija prihvaćena")));
-  }
+  void _acceptReview(BookReview review) async {
+  try {
+    await _reviewProvider.update(review.id!, {
+      "Comment": review.comment,
+      "Rating": review.rating,
+      "isApproved": true,
+      "isDenied": false,
+    });
 
-  void _declineReview(BookReview review) {
-    // TODO: Implement API logic
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Recenzija odbijena")));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Recenzija prihvaćena")),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Greška prilikom prihvaćanja recenzije: $e")),
+    );
   }
+}
 
-  void _declineAndWarnUser(BookReview review) {
-    // TODO: Implement API logic to warn the user
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Recenzija odbijena i korisnik upozoren")));
+void _declineReview(BookReview review) async {
+  try {
+    await _reviewProvider.update(review.id!, {
+      "Comment": review.comment,
+      "Rating": review.rating,
+      "isApproved": true,
+      "isDenied": true,
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Recenzija odbijena")),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Greška prilikom odbijanja recenzije: $e")),
+    );
   }
+}
+
+void _declineAndWarnUser(BookReview review) async {
+  try {
+    await _reviewProvider.update(review.id!, {
+      "Comment": review.comment,
+      "Rating": review.rating,
+      "isApproved": true,
+      "isDenied": true,
+    });
+
+    // You may add a separate API call here to warn the user if needed
+    await _userProvider.warnUser(review.user?.id);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Recenzija odbijena i korisnik upozoren")),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Greška prilikom odbijanja i upozoravanja korisnika: $e")),
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {

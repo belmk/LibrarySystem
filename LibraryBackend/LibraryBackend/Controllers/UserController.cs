@@ -42,5 +42,37 @@ namespace LibraryBackend.Controllers
 
             return Ok(user);
         }
+
+        [HttpPost("warn/{id}")]
+        public async Task<ActionResult<UserDto>> WarnUser(int id)
+        {
+            var user = await _userService.GetById(id);
+            if(user != null)
+            {
+                var userUpdate = new UserUpdateDto
+                {
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Username = user.Username,
+                    WarningNumber = user.WarningNumber + 1,
+                    IsActive = true
+                };
+
+                if(userUpdate.WarningNumber == 3)
+                {
+                    userUpdate.IsActive = false;
+                }
+
+                var result = await _userService.Update(id, userUpdate);
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+
+        }
     }
 }

@@ -11,5 +11,8 @@ namespace Library.Models.SearchObjects
     {
         public string? Username { get; set; }
         public string? Email {  get; set; }
+        public DateTime? ReviewDate { get; set; }
+        public bool? IsApproved { get; set; }
+        public bool? IsDenied { get; set; }
     }
 }

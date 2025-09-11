@@ -17,6 +17,6 @@ namespace Library.Models.DTOs.Users
         public RoleDto Role { get; set; }
         public bool IsActive { get; set; }
         public DateTime RegistrationDate { get; set; }
-
+        public int WarningNumber { get; set; }
     }
 }
