@@ -9,7 +9,8 @@ namespace Library.Models.SearchObjects
 {
     public class ComplaintSearchObject : BaseSearchObject
     {
-        public UserSearchObject? Sender { get; set; }
-        public UserSearchObject? Target { get; set; }
+        public string? Username { get; set; }
+        public string? Email { get; set; }
+        public DateTime? ComplaintDate { get; set; }
     }
 }

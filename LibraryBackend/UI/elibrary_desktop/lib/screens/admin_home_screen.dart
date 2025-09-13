@@ -1,4 +1,5 @@
 import 'package:elibrary_desktop/screens/book_screen.dart';
+import 'package:elibrary_desktop/screens/complaint_screen.dart';
 import 'package:elibrary_desktop/screens/user_screen.dart';
 import 'package:elibrary_desktop/widgets/admin_scaffold.dart';
 import 'package:elibrary_desktop/screens/book_review_screen.dart';
@@ -28,6 +29,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         currentTitle = "Skladište";
         currentScreen = const BookListScreen();
 
+      case 4:
+        currentTitle = "Žalbe";
+        currentScreen = const ComplaintScreen();
       case 6:
         currentTitle = "Recenzije";
         currentScreen = const BookReviewScreen();

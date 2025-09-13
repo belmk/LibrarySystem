@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:elibrary_desktop/models/book_review.dart';
 import 'package:elibrary_desktop/providers/book_review_provider.dart';
 import 'package:elibrary_desktop/providers/user_provider.dart';
+import 'package:elibrary_desktop/providers/notification_provider.dart';
 
 class BookReviewScreen extends StatefulWidget {
   const BookReviewScreen({Key? key}) : super(key: key);
@@ -14,6 +15,8 @@ class BookReviewScreen extends StatefulWidget {
 class _BookReviewScreenState extends State<BookReviewScreen> {
   final BookReviewProvider _reviewProvider = BookReviewProvider();
   final UserProvider _userProvider = UserProvider();
+  final NotificationProvider _notificationProvider = NotificationProvider();
+
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -80,6 +83,13 @@ class _BookReviewScreenState extends State<BookReviewScreen> {
       "isDenied": false,
     });
 
+    await _notificationProvider.insert({
+      "userId": review.user?.id,
+      "receivedDate": DateTime.now().toIso8601String(),
+      "title": "Recenzija prihvaćena",
+      "message": "Vaša recenzija za knjigu '${review.book?.title}' je prihvaćena.",
+    });
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Recenzija prihvaćena")),
     );
@@ -97,6 +107,13 @@ void _declineReview(BookReview review) async {
       "Rating": review.rating,
       "isApproved": true,
       "isDenied": true,
+    });
+
+    await _notificationProvider.insert({
+      "userId": review.user?.id,
+      "receivedDate": DateTime.now().toIso8601String(),
+      "title": "Recenzija odbijena",
+      "message": "Vaša recenzija za knjigu '${review.book?.title}' je odbijena.",
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -118,8 +135,14 @@ void _declineAndWarnUser(BookReview review) async {
       "isDenied": true,
     });
 
-    // You may add a separate API call here to warn the user if needed
     await _userProvider.warnUser(review.user?.id);
+
+    await _notificationProvider.insert({
+      "userId": review.user?.id,
+      "receivedDate": DateTime.now().toIso8601String(),
+      "title": "Upozorenje",
+      "message": "Vaša recenzija za '${review.book?.title}' je odbijena zbog neprimjerenog sadržaja. Ovo je službeno upozorenje.",
+    });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Recenzija odbijena i korisnik upozoren")),

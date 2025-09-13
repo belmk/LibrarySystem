@@ -12,6 +12,7 @@ class User {
   String? email;
   DateTime? registrationDate;
   Role? role;
+  int? warningNumber;
 
   User({
     this.id,
@@ -21,6 +22,7 @@ class User {
     this.email,
     this.registrationDate,
     this.role,
+    this.warningNumber
   });
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

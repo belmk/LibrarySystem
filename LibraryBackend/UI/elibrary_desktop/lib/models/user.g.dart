@@ -18,6 +18,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   role: json['role'] == null
       ? null
       : Role.fromJson(json['role'] as Map<String, dynamic>),
+  warningNumber: (json['warningNumber'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -28,4 +29,5 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'email': instance.email,
   'registrationDate': instance.registrationDate?.toIso8601String(),
   'role': instance.role,
+  'warningNumber': instance.warningNumber,
 };

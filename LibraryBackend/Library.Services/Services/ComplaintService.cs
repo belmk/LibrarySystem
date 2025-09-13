@@ -24,42 +24,21 @@ namespace Library.Services.Services
 
             filteredQuery = filteredQuery.Include(x => x.Sender).Include(x => x.Target);
 
-            if (search.Target != null)
+            if (!String.IsNullOrEmpty(search?.Username))
             {
-                if(!String.IsNullOrWhiteSpace(search.Target.FirstName))
-                    filteredQuery = filteredQuery.Where(x => x.Target.FirstName.Contains(search.Target.FirstName));
-
-                if (!String.IsNullOrWhiteSpace(search.Target.LastName))
-                    filteredQuery = filteredQuery.Where(x => x.Target.FirstName.Contains(search.Target.LastName));
-
-                if (!String.IsNullOrWhiteSpace(search.Target.Username))
-                    filteredQuery = filteredQuery.Where(x => x.Target.FirstName.Contains(search.Target.Username));
-
-                if (!String.IsNullOrWhiteSpace(search.Target.Email))
-                    filteredQuery = filteredQuery.Where(x => x.Target.FirstName.Contains(search.Target.Email));
-
-                if (search.Target.IsActive.HasValue)
-                    filteredQuery = filteredQuery.Where(x => x.Target.IsActive == search.Target.IsActive);
+                filteredQuery = filteredQuery.Where(x => x.Sender.Username.Contains(search.Username));
             }
 
-            if (search.Sender != null)
+            if (!String.IsNullOrEmpty(search?.Email))
             {
-                if (!String.IsNullOrWhiteSpace(search.Sender.FirstName))
-                    filteredQuery = filteredQuery.Where(x => x.Sender.FirstName.Contains(search.Sender.FirstName));
-
-                if (!String.IsNullOrWhiteSpace(search.Sender.LastName))
-                    filteredQuery = filteredQuery.Where(x => x.Sender.FirstName.Contains(search.Sender.LastName));
-
-                if (!String.IsNullOrWhiteSpace(search.Sender.Username))
-                    filteredQuery = filteredQuery.Where(x => x.Sender.FirstName.Contains(search.Sender.Username));
-
-                if (!String.IsNullOrWhiteSpace(search.Sender.Email))
-                    filteredQuery = filteredQuery.Where(x => x.Target.FirstName.Contains(search.Sender.Email));
-
-                if (search.Sender.IsActive.HasValue)
-                    filteredQuery = filteredQuery.Where(x => x.Sender.IsActive == search.Sender.IsActive);
+                filteredQuery = filteredQuery.Where(x => x.Sender.Email.Contains(search.Email));
             }
-            
+
+            if (search?.ComplaintDate != null && search.ComplaintDate != DateTime.MinValue)
+            {
+                filteredQuery = filteredQuery.Where(x => x.ComplaintDate.Date.Equals(search.ComplaintDate.Value.Date));
+            }
+
 
             return filteredQuery;
         }

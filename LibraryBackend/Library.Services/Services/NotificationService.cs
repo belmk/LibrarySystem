@@ -5,6 +5,7 @@ using Library.Models.SearchObjects;
 using Library.Services.Database;
 using Library.Services.Entities;
 using Library.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,8 @@ namespace Library.Services.Services
         public override IQueryable<Notification> AddFilter(IQueryable<Notification> query, NotificationSearchObject? search = null)
         {
             var filteredQuery = base.AddFilter(query, search);
+
+            filteredQuery = filteredQuery.Include(x => x.User);
 
             if (!string.IsNullOrWhiteSpace(search?.Title))
             {
