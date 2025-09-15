@@ -13,6 +13,7 @@ class User {
   DateTime? registrationDate;
   Role? role;
   int? warningNumber;
+  bool? isActive;
 
   User({
     this.id,
@@ -22,7 +23,8 @@ class User {
     this.email,
     this.registrationDate,
     this.role,
-    this.warningNumber
+    this.warningNumber,
+    this.isActive
   });
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

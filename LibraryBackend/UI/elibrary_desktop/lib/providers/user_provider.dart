@@ -23,4 +23,23 @@ class UserProvider extends BaseProvider<User> {
       throw Exception("Failed to warn user (status ${response.statusCode})");
     }
   }
+
+  Future<User> deactivateUser(int id) async {
+  final url = "${BaseProvider.baseUrl}$endpoint/$id";
+  final uri = Uri.parse(url);
+  final headers = createHeaders();
+
+  final response = await http.get(uri, headers: headers);
+
+  if (!isValidResponse(response)) {
+    throw Exception("Failed to fetch user with id $id");
+  }
+
+  final userJson = jsonDecode(response.body);
+  final user = fromJson(userJson);
+
+  user.isActive = false;
+
+  return await update(id, user.toJson());
+}
 }

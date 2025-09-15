@@ -196,10 +196,10 @@ void _declineAndWarnUser(BookReview review) async {
                   ),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: _loadReviews,
+                IconButton(
                   icon: const Icon(Icons.search),
-                  label: const Text('Pretraži'),
+                  tooltip: 'Pretraži',
+                  onPressed: _loadReviews,
                 ),
               ],
             ),

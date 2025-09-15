@@ -12,5 +12,6 @@ namespace Library.Models.SearchObjects
         public string? Username { get; set; }
         public string? Email { get; set; }
         public DateTime? ComplaintDate { get; set; }
+        public bool? IsResolved { get; set; }
     }
 }

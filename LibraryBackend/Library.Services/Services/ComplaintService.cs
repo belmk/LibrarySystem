@@ -39,6 +39,11 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.ComplaintDate.Date.Equals(search.ComplaintDate.Value.Date));
             }
 
+            if (search?.IsResolved != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.IsResolved ==  search.IsResolved);
+            }
+
 
             return filteredQuery;
         }

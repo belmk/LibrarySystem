@@ -1,3 +1,4 @@
+import 'package:elibrary_desktop/providers/notification_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:elibrary_desktop/models/complaint.dart';
@@ -14,6 +15,7 @@ class ComplaintScreen extends StatefulWidget {
 class _ComplaintScreenState extends State<ComplaintScreen> {
   final ComplaintProvider _complaintProvider = ComplaintProvider();
   final UserProvider _userProvider = UserProvider();
+  final NotificationProvider _notificationProvider = NotificationProvider();
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -40,6 +42,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
         "Username": _nameController.text.trim(),
         "Email": _emailController.text.trim(),
         "ComplaintDate": _selectedDate?.toIso8601String(),
+        "IsResolved": false
       });
 
       setState(() {
@@ -70,43 +73,83 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
   }
 
   Future<void> _giveWarning(Complaint complaint) async {
-    try {
-      await _userProvider.warnUser(complaint.target?.id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Upozorenje je poslano korisniku.")),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Greška pri slanju upozorenja: $e")),
-      );
-    }
-  }
+  try {
+    await _userProvider.warnUser(complaint.target?.id);
+    await _complaintProvider.update(complaint.id!, {
+      "IsResolved": true,
+    });
 
-  Future<void> _revokeMembership(Complaint complaint) async {
-    try {
-      //TODO: await _userProvider.revokeMembership(complaint.target?.id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Članstvo korisnika je ukinuto.")),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Greška pri ukidanju članstva: $e")),
-      );
-    }
-  }
+    await _notificationProvider.insert({
+      "userId": complaint.target?.id,
+      "receivedDate": DateTime.now().toIso8601String(),
+      "title": "Upozorenje",
+      "message": "Dobili ste upozorenje na osnovu žalbe zbog neprimjerenog ponašanja.",
+    });
 
-  Future<void> _deactivateProfile(Complaint complaint) async {
-    try {
-      //TODO: await _userProvider.deactivateUser(complaint.target?.id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Profil korisnika je deaktiviran.")),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Greška pri deaktivaciji profila: $e")),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Upozorenje je poslano korisniku.")),
+    );
+
+    await _loadComplaints(); 
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Greška pri slanju upozorenja: $e")),
+    );
   }
+}
+
+Future<void> _revokeMembership(Complaint complaint) async {
+  try {
+    // TODO: await _userProvider.revokeMembership(complaint.target?.id);
+    await _complaintProvider.update(complaint.id!, {
+      "IsResolved": true,
+    });
+
+    await _notificationProvider.insert({
+      "userId": complaint.target?.id,
+      "receivedDate": DateTime.now().toIso8601String(),
+      "title": "Ukinuto članstvo",
+      "message": "Vaše članstvo je ukinuto zbog ozbiljne žalbe na vaše ponašanje.",
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Članstvo korisnika je ukinuto.")),
+    );
+
+    await _loadComplaints();
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Greška pri ukidanju članstva: $e")),
+    );
+  }
+}
+
+Future<void> _deactivateProfile(Complaint complaint) async {
+  try {
+    await _userProvider.deactivateUser((complaint.target?.id)!);
+    await _complaintProvider.update(complaint.id!, {
+      "IsResolved": true,
+    });
+
+    await _notificationProvider.insert({
+      "userId": complaint.target?.id,
+      "receivedDate": DateTime.now().toIso8601String(),
+      "title": "Deaktiviran profil",
+      "message": "Vaš profil je deaktiviran zbog ozbiljnih kršenja pravila platforme.",
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Profil korisnika je deaktiviran.")),
+    );
+
+    await _loadComplaints();
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Greška pri deaktivaciji profila: $e")),
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -151,10 +194,10 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: _loadComplaints,
+                IconButton(
                   icon: const Icon(Icons.search),
-                  label: const Text('Pretraži'),
+                  tooltip: 'Pretraži',
+                  onPressed: _loadComplaints,
                 ),
               ],
             ),
