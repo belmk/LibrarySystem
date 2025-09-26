@@ -23,6 +23,7 @@ builder.Services.AddTransient<IBookReviewService, BookReviewService>();
 builder.Services.AddTransient<IForumThreadService, ForumThreadService>();
 builder.Services.AddTransient<IForumCommentService, ForumCommentService>();
 builder.Services.AddTransient<IActivityService,  ActivityService>();
+builder.Services.AddTransient<IBookLoanService, BookLoanService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 
 builder.Services.AddControllers();

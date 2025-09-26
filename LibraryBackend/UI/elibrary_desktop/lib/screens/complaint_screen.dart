@@ -25,6 +25,13 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
   bool _isLoading = true;
   String? _error;
 
+  int _currentPage = 1;
+  int _pageSize = 6;
+  int _totalCount = 0;
+
+  int get _totalPages => _totalCount > 0 ? (_totalCount / _pageSize).ceil() : 1;
+
+
   @override
   void initState() {
     super.initState();
@@ -32,30 +39,38 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
   }
 
   Future<void> _loadComplaints() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
+  setState(() {
+    _isLoading = true;
+    _error = null;
+  });
+
+  try {
+    final result = await _complaintProvider.get(filter: {
+      "Username": _nameController.text.trim(),
+      "Email": _emailController.text.trim(),
+      "ComplaintDate": _selectedDate?.toIso8601String(),
+      "IsResolved": false,
+      "Page": _currentPage - 1, 
+      "PageSize": _pageSize,
     });
 
-    try {
-      final result = await _complaintProvider.get(filter: {
-        "Username": _nameController.text.trim(),
-        "Email": _emailController.text.trim(),
-        "ComplaintDate": _selectedDate?.toIso8601String(),
-        "IsResolved": false
-      });
+    setState(() {
+      _complaints = result.result;
+      _totalCount = result.count ?? result.result.length; 
+      _isLoading = false;
 
-      setState(() {
-        _complaints = result.result;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = "Greška pri učitavanju žalbi: $e";
-        _isLoading = false;
-      });
-    }
+      if (_currentPage > _totalPages) {
+        _currentPage = _totalPages;
+      }
+    });
+  } catch (e) {
+    setState(() {
+      _error = "Greška pri učitavanju žalbi: $e";
+      _isLoading = false;
+    });
   }
+}
+
 
   void _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -150,6 +165,37 @@ Future<void> _deactivateProfile(Complaint complaint) async {
   }
 }
 
+Widget _buildPaginationControls() {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      IconButton(
+        onPressed: _currentPage > 1
+            ? () {
+                setState(() {
+                  _currentPage--;
+                });
+                _loadComplaints();
+              }
+            : null,
+        icon: const Icon(Icons.arrow_back),
+      ),
+      Text("Stranica $_currentPage od $_totalPages"),
+      IconButton(
+        onPressed: _currentPage < _totalPages
+            ? () {
+                setState(() {
+                  _currentPage++;
+                });
+                _loadComplaints();
+              }
+            : null,
+        icon: const Icon(Icons.arrow_forward),
+      ),
+    ],
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +243,12 @@ Future<void> _deactivateProfile(Complaint complaint) async {
                 IconButton(
                   icon: const Icon(Icons.search),
                   tooltip: 'Pretraži',
-                  onPressed: _loadComplaints,
+                  onPressed: () {
+                    setState(() {
+                      _currentPage = 1;
+                    });
+                    _loadComplaints();
+                  },
                 ),
               ],
             ),
@@ -206,64 +257,72 @@ Future<void> _deactivateProfile(Complaint complaint) async {
 
             // Table
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _error != null
-                      ? Center(child: Text(_error!))
-                      : _complaints.isEmpty
-                          ? const Center(child: Text('Nema žalbi'))
-                          : SingleChildScrollView(
-                              child: DataTable(
-                                columns: const [
-                                  DataColumn(label: Text('Podnosilac žalbe')),
-                                  DataColumn(label: Text('Meta žalbe')),
-                                  DataColumn(label: Text('Razlog')),
-                                  DataColumn(label: Text('Datum')),
-                                  DataColumn(label: Text('Upozorenja')),
-                                  DataColumn(label: Text('Akcije')),
-                                ],
-                                rows: _complaints.map((complaint) {
-                                  final sender = complaint.sender;
-                                  final target = complaint.target;
-                                  return DataRow(
-                                    cells: [
-                                      DataCell(Text(
-                                        '${sender?.firstName ?? ''} ${sender?.lastName ?? ''} (${sender?.email ?? '-'})',
-                                      )),
+  child: Column(
+    children: [
+      Expanded(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(child: Text(_error!))
+                : _complaints.isEmpty
+                    ? const Center(child: Text('Nema žalbi'))
+                    : SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          columns: const [
+                            DataColumn(label: Text('Podnosilac žalbe')),
+                            DataColumn(label: Text('Meta žalbe')),
+                            DataColumn(label: Text('Razlog')),
+                            DataColumn(label: Text('Datum')),
+                            DataColumn(label: Text('Upozorenja')),
+                            DataColumn(label: Text('Akcije')),
+                          ],
+                          rows: _complaints.map((complaint) {
+                            final sender = complaint.sender;
+                            final target = complaint.target;
+                            return DataRow(
+                              cells: [
+                                DataCell(Text(
+                                  '${sender?.firstName ?? ''} ${sender?.lastName ?? ''} (${sender?.email ?? '-'})',
+                                )),
+                                DataCell(Text(
+                                  '${target?.firstName ?? ''} ${target?.lastName ?? ''} (${target?.email ?? '-'})',
+                                )),
+                                DataCell(Text(complaint.reason ?? '-')),
+                                DataCell(Text(complaint.complaintDate != null
+                                    ? DateFormat('yyyy-MM-dd').format(complaint.complaintDate!)
+                                    : '-')),
+                                DataCell(Text('${target?.warningNumber ?? 0}')),
+                                DataCell(Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.warning, color: Colors.orange),
+                                      tooltip: 'Upozori',
+                                      onPressed: () => _giveWarning(complaint),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                                      tooltip: 'Ukinuti članstvo',
+                                      onPressed: () => _revokeMembership(complaint),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.person_off, color: Colors.grey),
+                                      tooltip: 'Deaktiviraj profil',
+                                      onPressed: () => _deactivateProfile(complaint),
+                                    ),
+                                  ],
+                                )),
+                              ],
+                            );
+                          }).toList(),
+                        ),
+                      ),
+      ),
+      _buildPaginationControls(),
+    ],
+  ),
+)
 
-                                      DataCell(Text(
-                                        '${target?.firstName ?? ''} ${target?.lastName ?? ''} (${target?.email ?? '-'})',
-                                      )),
-                                      DataCell(Text(complaint.reason ?? '-')),
-                                      DataCell(Text(complaint.complaintDate != null
-                                          ? DateFormat('yyyy-MM-dd').format(complaint.complaintDate!)
-                                          : '-')),
-                                      DataCell(Text('${target?.warningNumber ?? 0}')),
-                                      DataCell(Row(
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(Icons.warning, color: Colors.orange),
-                                            tooltip: 'Upozori',
-                                            onPressed: () => _giveWarning(complaint),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                                            tooltip: 'Ukinuti članstvo',
-                                            onPressed: () => _revokeMembership(complaint),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.person_off, color: Colors.grey),
-                                            tooltip: 'Deaktiviraj profil',
-                                            onPressed: () => _deactivateProfile(complaint),
-                                          ),
-                                        ],
-                                      )),
-                                    ],
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-            ),
           ],
         ),
       ),

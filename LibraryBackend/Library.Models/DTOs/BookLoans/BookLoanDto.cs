@@ -13,7 +13,8 @@ namespace Library.Models.DTOs.BookLoans
         public int Id { get; set; }
         public UserDto User { get; set; }
         public BookDto Book { get; set; }
-        public DateTime LoanDate { get; set; }
-        public DateTime ReturnDate { get; set; }
+        public DateTime? LoanDate { get; set; }
+        public DateTime? ReturnDate { get; set; }
+        public bool IsApproved { get; set; }
     }
 }

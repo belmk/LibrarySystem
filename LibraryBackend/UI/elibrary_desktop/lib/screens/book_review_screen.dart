@@ -26,6 +26,13 @@ class _BookReviewScreenState extends State<BookReviewScreen> {
   bool _isLoading = true;
   String? _error;
 
+  int _currentPage = 1;
+  int _pageSize = 6;
+  int _totalCount = 0;
+
+  int get _totalPages => _totalCount > 0 ? (_totalCount / _pageSize).ceil() : 1;
+
+
   @override
   void initState() {
     super.initState();
@@ -33,31 +40,40 @@ class _BookReviewScreenState extends State<BookReviewScreen> {
   }
 
   Future<void> _loadReviews() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
+  setState(() {
+    _isLoading = true;
+    _error = null;
+  });
+
+  try {
+    final result = await _reviewProvider.get(filter: {
+      "Username": _nameController.text.trim(),
+      "Email": _emailController.text.trim(),
+      "ReviewDate": _selectedDate?.toIso8601String(),
+      "IsApproved": false,
+      "IsDenied": false,
+      "Page": _currentPage - 1,
+      "PageSize": _pageSize,
     });
 
-    try {
-      final result = await _reviewProvider.get(filter: {
-        "Username": _nameController.text.trim(),
-        "Email": _emailController.text.trim(),
-        "ReviewDate": _selectedDate?.toIso8601String(),
-        "IsApproved": false,
-        "IsDenied": false,
-      });
+    setState(() {
+      _reviews = result.result;
+      _totalCount = result.count ?? result.result.length;
 
-      setState(() {
-        _reviews = result.result;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = "Greška pri učitavanju recenzija: $e";
-        _isLoading = false;
-      });
-    }
+      if (_currentPage > _totalPages) {
+        _currentPage = _totalPages;
+      }
+
+      _isLoading = false;
+    });
+  } catch (e) {
+    setState(() {
+      _error = "Greška pri učitavanju recenzija: $e";
+      _isLoading = false;
+    });
   }
+}
+
 
   void _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -154,67 +170,108 @@ void _declineAndWarnUser(BookReview review) async {
   }
 }
 
+Widget _buildPaginationControls() {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: _currentPage > 1
+            ? () {
+                setState(() {
+                  _currentPage--;
+                });
+                _loadReviews();
+              }
+            : null,
+      ),
+      Text("Stranica $_currentPage od $_totalPages"),
+      IconButton(
+        icon: const Icon(Icons.arrow_forward),
+        onPressed: _currentPage < _totalPages
+            ? () {
+                setState(() {
+                  _currentPage++;
+                });
+                _loadReviews();
+              }
+            : null,
+      ),
+    ],
+  );
+}
+
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            // Filters
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Ime korisnika'),
-                  ),
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: [
+          // Filters
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: 'Ime korisnika'),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(labelText: 'Email korisnika'),
-                  ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(labelText: 'Email korisnika'),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _selectDate(context),
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        decoration: const InputDecoration(labelText: 'Datum recenzije',
-                                                          suffixIcon: Icon(Icons.calendar_today),),
-                        controller: TextEditingController(
-                          text: _selectedDate != null
-                              ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-                              : '',
-                        ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _selectDate(context),
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Datum recenzije',
+                        suffixIcon: Icon(Icons.calendar_today),
+                      ),
+                      controller: TextEditingController(
+                        text: _selectedDate != null
+                            ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+                            : '',
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  tooltip: 'Pretraži',
-                  onPressed: _loadReviews,
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.search),
+                tooltip: 'Pretraži',
+                onPressed: () {
+                  setState(() {
+                    _currentPage = 1;
+                  });
+                  _loadReviews();
+                },
+              ),
+            ],
+          ),
 
-            const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-            // Table
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _error != null
-                      ? Center(child: Text(_error!))
-                      : _reviews.isEmpty
-                          ? const Center(child: Text('Nema recenzija'))
-                          : SingleChildScrollView(
+          // Table
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? Center(child: Text(_error!))
+                    : _reviews.isEmpty
+                        ? const Center(child: Text('Nema recenzija'))
+                        : SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
                               child: DataTable(
                                 columns: const [
                                   DataColumn(label: Text('Korisnik')),
@@ -262,10 +319,15 @@ void _declineAndWarnUser(BookReview review) async {
                                 }).toList(),
                               ),
                             ),
-            ),
-          ],
-        ),
+                          ),
+          ),
+
+          
+          _buildPaginationControls(),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 }
