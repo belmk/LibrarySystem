@@ -41,6 +41,12 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.LoanDate.Equals(search.LoanDate));
             }
 
+            if (search?.LoanStatus != null) 
+            { 
+                filteredQuery = filteredQuery.Where(x => x.LoanStatus.Equals(search.LoanStatus));
+            }
+
+
             return filteredQuery;
         }
     }

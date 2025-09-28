@@ -202,15 +202,15 @@ Widget _buildPaginationControls() {
 }
 
 
-  @override
+ @override
 Widget build(BuildContext context) {
   return Scaffold(
-    body: Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          // Filters
-          Row(
+    body: Column(
+      children: [
+        // Filters
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
             children: [
               Expanded(
                 child: TextField(
@@ -257,21 +257,24 @@ Widget build(BuildContext context) {
               ),
             ],
           ),
+        ),
 
-          const SizedBox(height: 16),
+        const SizedBox(height: 8),
 
-          // Table
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                    ? Center(child: Text(_error!))
-                    : _reviews.isEmpty
-                        ? const Center(child: Text('Nema recenzija'))
-                        : SingleChildScrollView(
+        // Main content
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                  ? Center(child: Text(_error!))
+                  : _reviews.isEmpty
+                      ? const Center(child: Text('Nema recenzija'))
+                      : SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SingleChildScrollView(
                             scrollDirection: Axis.vertical,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
                               child: DataTable(
                                 columns: const [
                                   DataColumn(label: Text('Korisnik')),
@@ -320,14 +323,14 @@ Widget build(BuildContext context) {
                               ),
                             ),
                           ),
-          ),
+                        ),
+        ),
 
-          
-          _buildPaginationControls(),
-        ],
-      ),
+        _buildPaginationControls(),
+      ],
     ),
   );
 }
+
 
 }

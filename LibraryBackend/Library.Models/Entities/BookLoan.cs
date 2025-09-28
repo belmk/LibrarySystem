@@ -1,4 +1,5 @@
-﻿using Library.Services.Entities;
+﻿using Library.Models.Enums;
+using Library.Services.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,6 @@ namespace Library.Models.Entities
         public Book Book { get; set; }
         public DateTime? LoanDate { get; set; }
         public DateTime? ReturnDate { get; set; }
-        public bool IsApproved { get; set; }
+        public BookLoanStatus LoanStatus { get; set; }
     }
 }

@@ -198,134 +198,137 @@ Widget _buildPaginationControls() {
 
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            // Filters
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Ime korisnika'),
-                  ),
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Column(
+      children: [
+        // Filters
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: 'Ime korisnika'),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(labelText: 'Email korisnika'),
-                  ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(labelText: 'Email korisnika'),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _selectDate(context),
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          labelText: 'Datum žalbe',
-                          suffixIcon: Icon(Icons.calendar_today),
-                        ),
-                        controller: TextEditingController(
-                          text: _selectedDate != null
-                              ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-                              : '',
-                        ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _selectDate(context),
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Datum žalbe',
+                        suffixIcon: Icon(Icons.calendar_today),
+                      ),
+                      controller: TextEditingController(
+                        text: _selectedDate != null
+                            ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+                            : '',
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  tooltip: 'Pretraži',
-                  onPressed: () {
-                    setState(() {
-                      _currentPage = 1;
-                    });
-                    _loadComplaints();
-                  },
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Table
-            Expanded(
-  child: Column(
-    children: [
-      Expanded(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
-                ? Center(child: Text(_error!))
-                : _complaints.isEmpty
-                    ? const Center(child: Text('Nema žalbi'))
-                    : SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          columns: const [
-                            DataColumn(label: Text('Podnosilac žalbe')),
-                            DataColumn(label: Text('Meta žalbe')),
-                            DataColumn(label: Text('Razlog')),
-                            DataColumn(label: Text('Datum')),
-                            DataColumn(label: Text('Upozorenja')),
-                            DataColumn(label: Text('Akcije')),
-                          ],
-                          rows: _complaints.map((complaint) {
-                            final sender = complaint.sender;
-                            final target = complaint.target;
-                            return DataRow(
-                              cells: [
-                                DataCell(Text(
-                                  '${sender?.firstName ?? ''} ${sender?.lastName ?? ''} (${sender?.email ?? '-'})',
-                                )),
-                                DataCell(Text(
-                                  '${target?.firstName ?? ''} ${target?.lastName ?? ''} (${target?.email ?? '-'})',
-                                )),
-                                DataCell(Text(complaint.reason ?? '-')),
-                                DataCell(Text(complaint.complaintDate != null
-                                    ? DateFormat('yyyy-MM-dd').format(complaint.complaintDate!)
-                                    : '-')),
-                                DataCell(Text('${target?.warningNumber ?? 0}')),
-                                DataCell(Row(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.warning, color: Colors.orange),
-                                      tooltip: 'Upozori',
-                                      onPressed: () => _giveWarning(complaint),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                                      tooltip: 'Ukinuti članstvo',
-                                      onPressed: () => _revokeMembership(complaint),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.person_off, color: Colors.grey),
-                                      tooltip: 'Deaktiviraj profil',
-                                      onPressed: () => _deactivateProfile(complaint),
-                                    ),
-                                  ],
-                                )),
-                              ],
-                            );
-                          }).toList(),
-                        ),
-                      ),
-      ),
-      _buildPaginationControls(),
-    ],
-  ),
-)
-
-          ],
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.search),
+                tooltip: 'Pretraži',
+                onPressed: () {
+                  setState(() {
+                    _currentPage = 1;
+                  });
+                  _loadComplaints();
+                },
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+
+        const SizedBox(height: 8),
+
+        // Main scrollable content
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                  ? Center(child: Text(_error!))
+                  : _complaints.isEmpty
+                      ? const Center(child: Text('Nema žalbi'))
+                      : SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SingleChildScrollView(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: DataTable(
+                                columns: const [
+                                  DataColumn(label: Text('Podnosilac žalbe')),
+                                  DataColumn(label: Text('Meta žalbe')),
+                                  DataColumn(label: Text('Razlog')),
+                                  DataColumn(label: Text('Datum')),
+                                  DataColumn(label: Text('Upozorenja')),
+                                  DataColumn(label: Text('Akcije')),
+                                ],
+                                rows: _complaints.map((complaint) {
+                                  final sender = complaint.sender;
+                                  final target = complaint.target;
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(Text(
+                                        '${sender?.firstName ?? ''} ${sender?.lastName ?? ''} (${sender?.email ?? '-'})',
+                                      )),
+                                      DataCell(Text(
+                                        '${target?.firstName ?? ''} ${target?.lastName ?? ''} (${target?.email ?? '-'})',
+                                      )),
+                                      DataCell(Text(complaint.reason ?? '-')),
+                                      DataCell(Text(complaint.complaintDate != null
+                                          ? DateFormat('yyyy-MM-dd').format(complaint.complaintDate!)
+                                          : '-')),
+                                      DataCell(Text('${target?.warningNumber ?? 0}')),
+                                      DataCell(Row(
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.warning, color: Colors.orange),
+                                            tooltip: 'Upozori',
+                                            onPressed: () => _giveWarning(complaint),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                                            tooltip: 'Ukinuti članstvo',
+                                            onPressed: () => _revokeMembership(complaint),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.person_off, color: Colors.grey),
+                                            tooltip: 'Deaktiviraj profil',
+                                            onPressed: () => _deactivateProfile(complaint),
+                                          ),
+                                        ],
+                                      )),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                        ),
+        ),
+
+        // Pagination — OUTSIDE of scrollable area
+        
+          _buildPaginationControls(),
+        
+      ],
+    ),
+  );
+}
+
 }
