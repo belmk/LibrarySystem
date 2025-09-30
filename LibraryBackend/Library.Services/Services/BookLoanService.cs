@@ -24,11 +24,12 @@ namespace Library.Services.Services
 
             filteredQuery = filteredQuery
                 .Include(x => x.Book)
+                .Include(x => x.Book.Author)
                 .Include(x => x.User);
 
-            if (!string.IsNullOrWhiteSpace(search?.Email))
+            if (!string.IsNullOrWhiteSpace(search?.BookName))
             {
-                filteredQuery = filteredQuery.Where(x => x.User.Email.Contains(search.Email));
+                filteredQuery = filteredQuery.Where(x => x.Book.Title.ToLower().Contains(search.BookName.ToLower()));
             }
 
             if (!string.IsNullOrWhiteSpace(search?.Username))

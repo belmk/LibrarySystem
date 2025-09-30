@@ -1,3 +1,4 @@
+import 'package:elibrary_desktop/screens/book_loan_screen.dart';
 import 'package:elibrary_desktop/screens/book_screen.dart';
 import 'package:elibrary_desktop/screens/complaint_screen.dart';
 import 'package:elibrary_desktop/screens/user_screen.dart';
@@ -32,6 +33,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       case 4:
         currentTitle = "Žalbe";
         currentScreen = const ComplaintScreen();
+      
+      case 5:
+        currentTitle = "Evidencija posudbi";
+        currentScreen = const BookLoanScreen();
       case 6:
         currentTitle = "Recenzije";
         currentScreen = const BookReviewScreen();
