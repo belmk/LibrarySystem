@@ -9,8 +9,6 @@ namespace Library.Models.DTOs.BookLoans
 {
     public class BookLoanUpdateDto
     {
-        public int UserId { get; set; }
-        public int BookId { get; set; }
         public DateTime? LoanDate { get; set; }
         public DateTime? ReturnDate { get; set; }
         public BookLoanStatus LoanStatus { get; set; }

@@ -188,7 +188,7 @@ class _BookLoanScreenState extends State<BookLoanScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Username as title (no label)
+              // Username as title
               Text(
                 loan.user?.username ?? '-',
                 style: const TextStyle(
@@ -197,18 +197,19 @@ class _BookLoanScreenState extends State<BookLoanScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-
-              // Info rows
-              _buildInfoRow('Naziv knjige', loan.book?.title ?? '-'),
-              _buildInfoRow(
-                'Autor',
+              _buildIconInfoRow(Icons.book, loan.book?.title ?? '-'),
+              _buildIconInfoRow(
+                Icons.person,
                 loan.book?.author != null
                     ? '${loan.book!.author!.firstName ?? ''} ${loan.book!.author!.lastName ?? ''}'.trim()
                     : '-',
               ),
-              _buildInfoRow('Status', loan.loanStatus?.displayName ?? '-'),
-              _buildInfoRow('Datum pozajmice', formatDate(loan.loanDate)),
-              _buildInfoRow('Datum vraćanja', formatDate(loan.returnDate)),
+              _buildIconInfoRow(Icons.info, loan.loanStatus?.displayName ?? '-'),
+              _buildIconInfoRow(Icons.calendar_today, formatDate(loan.loanDate)),
+              _buildIconInfoRow(Icons.assignment_return, formatDate(loan.returnDate)),
+
+
+              _buildActionIcons(loan),
             ],
           ),
         ),
@@ -218,21 +219,84 @@ class _BookLoanScreenState extends State<BookLoanScreen> {
 }
 
 
-Widget _buildInfoRow(String label, String value) {
+
+Widget _buildIconInfoRow(IconData icon, String value, {Color? iconColor}) {
   return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 2),
-    child: RichText(
-      text: TextSpan(
-        style: const TextStyle(color: Colors.black, fontSize: 14),
-        children: [
-          TextSpan(
-            text: '$label: ',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: iconColor ?? Colors.blue),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(fontSize: 14),
           ),
-          TextSpan(text: value),
-        ],
-      ),
+        ),
+      ],
     ),
+  );
+}
+
+
+Widget _buildActionIcons(BookLoan loan) {
+  final status = loan.loanStatus;
+
+  List<Widget> icons = [];
+
+  void addIcon(IconData icon, String tooltip, VoidCallback onPressed, {Color? color}) {
+    icons.add(
+      Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: Tooltip(
+          message: tooltip,
+          child: IconButton(
+            icon: Icon(icon, color: color ?? Colors.black),
+            onPressed: onPressed,
+          ),
+        ),
+      ),
+    );
+  }
+
+  if (status == BookLoanStatus.pendingApproval) {
+    addIcon(Icons.check_circle, "Odobri pozajmicu", () {
+      // TODO: Implement allow logic
+    }, color: Colors.green);
+
+    addIcon(Icons.cancel, "Odbij pozajmicu", () {
+      // TODO: Implement deny logic
+    }, color: Colors.red);
+
+    addIcon(Icons.history, "Istorija pozajmica", () {
+      // TODO: Implement loan history logic
+    });
+  } else if (status == BookLoanStatus.approved) {
+    addIcon(Icons.assignment_turned_in, "Potvrdi preuzimanje", () {
+      // TODO: Implement pickup confirmation logic
+    }, color: Colors.blue);
+
+    addIcon(Icons.history, "Istorija pozajmica", () {
+      // TODO: Implement loan history logic
+    });
+  } else if (status == BookLoanStatus.pickedUp) {
+    addIcon(Icons.assignment_return, "Potvrdi vraćanje", () {
+      // TODO: Implement return confirmation logic
+    }, color: Colors.blue);
+
+    addIcon(Icons.history, "Istorija pozajmica", () {
+      // TODO: Implement loan history logic
+    });
+  } else if (status == BookLoanStatus.returned) {
+    addIcon(Icons.history, "Istorija pozajmica", () {
+      // TODO: Implement loan history logic
+    });
+  }
+
+  return Padding(
+    padding: const EdgeInsets.only(top: 8.0),
+    child: Row(children: icons),
   );
 }
 
