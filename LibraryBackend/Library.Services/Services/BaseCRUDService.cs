@@ -45,9 +45,9 @@ namespace Library.Services.Services
 
             var entity = await set.FindAsync(id);
 
-            _mapper.Map(update, entity);
-
             await BeforeUpdate(entity, update);
+
+            _mapper.Map(update, entity);
 
             await _context.SaveChangesAsync();
             return _mapper.Map<T>(entity);

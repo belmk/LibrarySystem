@@ -115,29 +115,44 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
 
 Future<void> _revokeMembership(Complaint complaint) async {
   try {
-    // TODO: await _userProvider.revokeMembership(complaint.target?.id);
+    final userId = complaint.target?.id;
+
+    if (userId == null) {
+      throw Exception("ID korisnika nije dostupan.");
+    }
+
+    final success = await _userProvider.revokeSubscription(userId);
+
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Korisnik nema aktivnu pretplatu.")),
+      );
+      return; 
+    }
+
     await _complaintProvider.update(complaint.id!, {
       "IsResolved": true,
     });
 
     await _notificationProvider.insert({
-      "userId": complaint.target?.id,
+      "userId": userId,
       "receivedDate": DateTime.now().toIso8601String(),
-      "title": "Ukinuto članstvo",
-      "message": "Vaše članstvo je ukinuto zbog ozbiljne žalbe na vaše ponašanje.",
+      "title": "Ukinuta pretplata",
+      "message": "Vaša pretplata je ukinuta zbog ozbiljne žalbe na vaše ponašanje.",
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Članstvo korisnika je ukinuto.")),
+      const SnackBar(content: Text("Pretplata korisnika je ukinuta.")),
     );
 
-    await _loadComplaints();
+    await _loadComplaints(); 
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Greška pri ukidanju članstva: $e")),
+      SnackBar(content: Text("Greška pri ukidanju pretplate: $e")),
     );
   }
 }
+
 
 Future<void> _deactivateProfile(Complaint complaint) async {
   try {
@@ -239,6 +254,20 @@ Widget build(BuildContext context) {
                   ),
                 ),
               ),
+              IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Resetuj filtere',
+            style: TextButton.styleFrom(foregroundColor: Colors.grey[700]),
+            onPressed: () {
+              setState(() {
+                _nameController.clear();
+                _emailController.clear();
+                _selectedDate = null;
+                _currentPage = 1;
+              });
+              _loadComplaints();
+            },
+          ),
               const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.search),
@@ -256,7 +285,6 @@ Widget build(BuildContext context) {
 
         const SizedBox(height: 8),
 
-        // Main scrollable content
         Expanded(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -303,7 +331,7 @@ Widget build(BuildContext context) {
                                           ),
                                           IconButton(
                                             icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                                            tooltip: 'Ukinuti članstvo',
+                                            tooltip: 'Ukini pretplatu',
                                             onPressed: () => _revokeMembership(complaint),
                                           ),
                                           IconButton(
@@ -322,8 +350,6 @@ Widget build(BuildContext context) {
                         ),
         ),
 
-        // Pagination — OUTSIDE of scrollable area
-        
           _buildPaginationControls(),
         
       ],

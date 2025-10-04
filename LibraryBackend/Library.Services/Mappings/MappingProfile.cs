@@ -12,6 +12,7 @@ using Library.Models.DTOs.Genres;
 using Library.Models.DTOs.Notifications;
 using Library.Models.DTOs.Roles;
 using Library.Models.DTOs.Subscriptions;
+using Library.Models.DTOs.UserBooks;
 using Library.Models.DTOs.Users;
 using Library.Models.Entities;
 using Library.Models.SearchObjects;
@@ -93,6 +94,11 @@ namespace Library.Services.Mappings
             CreateMap<Activity, ActivityDto>();
             CreateMap<ActivityInsertDto, Activity>();
             CreateMap<ActivityUpdateDto, Activity>();
+
+
+            CreateMap<UserBook, UserBookDto>();
+            CreateMap<UserBookInsertDto, UserBook>();
+            CreateMap<UserBookUpdateDto,UserBook>();
         }
     }
 }

@@ -1,3 +1,4 @@
+import 'package:elibrary_desktop/screens/book_loan_history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:elibrary_desktop/models/book_loan.dart';
 import 'package:elibrary_desktop/models/book_loan_status.dart';
@@ -150,6 +151,22 @@ class _BookLoanScreenState extends State<BookLoanScreen> {
               },
             ),
           ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Resetuj filtere',
+            style: TextButton.styleFrom(foregroundColor: Colors.grey[700]),
+            onPressed: () {
+              setState(() {
+                _bookNameController.clear();
+                _usernameController.clear();
+                _loanDateController.clear();
+                _selectedStatus = null;
+                _selectedLoanDate = null;
+                _currentPage = 1;
+              });
+              _onSearchPressed();
+            },
+          ),
           const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.search),
@@ -239,6 +256,59 @@ Widget _buildIconInfoRow(IconData icon, String value, {Color? iconColor}) {
   );
 }
 
+Future<void> _updateLoanStatus(
+  BookLoan loan,
+  BookLoanStatus newStatus, {
+  bool setLoanDate = false,
+  bool setReturnDate = false,
+  required String confirmationMessage,
+  required String successMessage,
+}) async {
+  final confirmed = await _showConfirmationDialog("Potvrda", confirmationMessage);
+  if (!confirmed) return;
+
+  try {
+    await _bookLoanProvider.update(loan.id!, {
+      "LoanStatus": newStatus.index,
+      if (setLoanDate) "LoanDate": DateTime.now().toIso8601String(),
+      if (setReturnDate) "ReturnDate": DateTime.now().toIso8601String(),
+    });
+
+    await _loadBookLoans();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(successMessage)),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Greška prilikom ažuriranja: $e')),
+    );
+  }
+}
+
+
+Future<bool> _showConfirmationDialog(String title, String content) async {
+  return await showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            child: const Text("Ne"),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ElevatedButton(
+            child: const Text("Da"),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      );
+    },
+  ) ?? false;
+}
+
 
 Widget _buildActionIcons(BookLoan loan) {
   final status = loan.loanStatus;
@@ -261,38 +331,83 @@ Widget _buildActionIcons(BookLoan loan) {
   }
 
   if (status == BookLoanStatus.pendingApproval) {
-    addIcon(Icons.check_circle, "Odobri pozajmicu", () {
-      // TODO: Implement allow logic
-    }, color: Colors.green);
+  addIcon(Icons.check_circle, "Odobri pozajmicu", () {
+    _updateLoanStatus(
+      loan,
+      BookLoanStatus.approved,
+      confirmationMessage: "Da li ste sigurni da želite da odobrite ovu pozajmicu?",
+      successMessage: "Pozajmica uspešno odobrena.",
+    );
+  }, color: Colors.green);
 
-    addIcon(Icons.cancel, "Odbij pozajmicu", () {
-      // TODO: Implement deny logic
-    }, color: Colors.red);
+  addIcon(Icons.cancel, "Odbij pozajmicu", () {
+    // Optional: implement rejection logic
+  }, color: Colors.red);
 
-    addIcon(Icons.history, "Istorija pozajmica", () {
-      // TODO: Implement loan history logic
-    });
-  } else if (status == BookLoanStatus.approved) {
-    addIcon(Icons.assignment_turned_in, "Potvrdi preuzimanje", () {
-      // TODO: Implement pickup confirmation logic
-    }, color: Colors.blue);
+  addIcon(Icons.history, "Historija pozajmica", () {
+    showDialog(
+    context: context,
+    builder: (_) => BookLoanHistoryScreen(
+      userId: loan.user?.id ?? 0,
+      username: loan.user?.username ?? "-",
+    ),
+  );
+  });
 
-    addIcon(Icons.history, "Istorija pozajmica", () {
-      // TODO: Implement loan history logic
-    });
-  } else if (status == BookLoanStatus.pickedUp) {
-    addIcon(Icons.assignment_return, "Potvrdi vraćanje", () {
-      // TODO: Implement return confirmation logic
-    }, color: Colors.blue);
+} else if (status == BookLoanStatus.approved) {
+  addIcon(Icons.assignment_turned_in, "Potvrdi preuzimanje", () {
+    _updateLoanStatus(
+      loan,
+      BookLoanStatus.pickedUp,
+      setLoanDate: true,
+      confirmationMessage: "Da li ste sigurni da je korisnik preuzeo knjigu?",
+      successMessage: "Preuzimanje knjige je uspešno potvrđeno.",
+    );
+  }, color: Colors.green);
 
-    addIcon(Icons.history, "Istorija pozajmica", () {
-      // TODO: Implement loan history logic
-    });
-  } else if (status == BookLoanStatus.returned) {
-    addIcon(Icons.history, "Istorija pozajmica", () {
-      // TODO: Implement loan history logic
-    });
-  }
+  addIcon(Icons.history, "Historija pozajmica", () {
+    showDialog(
+    context: context,
+    builder: (_) => BookLoanHistoryScreen(
+      userId: loan.user?.id ?? 0,
+      username: loan.user?.username ?? "-",
+    ),
+  );
+  });
+
+} else if (status == BookLoanStatus.pickedUp) {
+  addIcon(Icons.assignment_return, "Potvrdi vraćanje", () {
+    _updateLoanStatus(
+      loan,
+      BookLoanStatus.returned,
+      setReturnDate: true,
+      confirmationMessage: "Da li želite da potvrdite vraćanje knjige?",
+      successMessage: "Vraćanje knjige je uspešno potvrđeno.",
+    );
+  }, color: Colors.blue);
+
+  addIcon(Icons.history, "Historija pozajmica", () {
+    showDialog(
+    context: context,
+    builder: (_) => BookLoanHistoryScreen(
+      userId: loan.user?.id ?? 0,
+      username: loan.user?.username ?? "-",
+    ),
+  );
+  });
+
+} else if (status == BookLoanStatus.returned) {
+  addIcon(Icons.history, "Historija pozajmica", () {
+    showDialog(
+    context: context,
+    builder: (_) => BookLoanHistoryScreen(
+      userId: loan.user?.id ?? 0,
+      username: loan.user?.username ?? "-",
+    ),
+  );
+  });
+}
+
 
   return Padding(
     padding: const EdgeInsets.only(top: 8.0),

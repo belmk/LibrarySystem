@@ -39,7 +39,7 @@ class _BookListScreenState extends State<BookListScreen> {
 
   Future<void> _loadGenres() async {
   try {
-    final genres = await _genreProvider.get(); // Adjust this if your API is paginated
+    final genres = await _genreProvider.get(); 
     if (mounted) {
       setState(() {
         _genres = genres.result;
@@ -100,6 +100,7 @@ Future<void> _deleteBook(int id) async {
         "Title": _titleController.text.trim(),
         "Author": _authorController.text.trim(),
         "GenreId": _selectedGenreId,
+        "IsUserBook": false,
         "Page": _currentPage - 1,
         "PageSize": _pageSize,
       },
@@ -191,6 +192,20 @@ Widget build(BuildContext context) {
                     },
                     decoration: const InputDecoration(labelText: 'Žanr'),
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Resetuj filtere',
+                  style: TextButton.styleFrom(foregroundColor: Colors.grey[700]),
+                  onPressed: () {
+                    setState(() {
+                      _titleController.clear();
+                      _authorController.clear();
+                      _selectedGenreId = null;
+                      _currentPage = 1;
+                    });
+                    _loadBooks();
+                  },
                 ),
                 const SizedBox(width: 8),
                 IconButton(

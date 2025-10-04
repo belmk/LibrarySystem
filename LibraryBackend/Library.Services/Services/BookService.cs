@@ -72,6 +72,15 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.Genres.Any(g => g.Id == search.GenreId));
             }
 
+            if (search?.IsUserBook != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.IsUserBook == search.IsUserBook);
+            }
+
+            if (search?.UserId != null) 
+            { 
+                filteredQuery = filteredQuery.Where(x => x.UserId == search.UserId);
+            }
 
             return filteredQuery;
         }

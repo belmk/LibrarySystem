@@ -12,6 +12,7 @@ namespace Library.Models.SearchObjects
     {
         public string? BookName { get; set; }
         public string? Username { get; set; }
+        public int? UserId { get; set; }
         public DateTime? LoanDate { get; set; }
         public DateTime? ReturnDate { get; set; }
         public BookLoanStatus? LoanStatus { get; set; }

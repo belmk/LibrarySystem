@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Library.Services.Services
 {
-    public class ActivityService :BaseCRUDService<ActivityDto, Activity, ActivitySearchObject, ActivityInsertDto, ActivityUpdateDto>, IActivityService
+    public class ActivityService : BaseCRUDService<ActivityDto, Activity, ActivitySearchObject, ActivityInsertDto, ActivityUpdateDto>, IActivityService
     {
         public ActivityService(LibraryDbContext context, IMapper mapper) : base(context, mapper) { }
 

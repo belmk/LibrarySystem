@@ -14,8 +14,21 @@ class Book {
   int? availableNumber;
   List<Genre>? genres;
 
-  Book(this.id, this.author, this.title, this.description, this.pageNumber, this.availableNumber, this.genres);
+  bool? isUserBook;
+  int? userId;
 
+ Book(
+    this.id,
+    this.author,
+    this.title,
+    this.description,
+    this.pageNumber,
+    this.availableNumber,
+    this.genres,
+    this.isUserBook,
+    this.userId,
+  );
+  
   factory Book.fromJson(Map<String, dynamic> json) => _$BookFromJson(json);
   Map<String, dynamic> toJson() => _$BookToJson(this);
 }

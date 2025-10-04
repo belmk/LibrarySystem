@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace Library.Models.SearchObjects
 {
-    public class BookSearchObject : BaseSearchObject
+    public class UserBookSearchObject : BaseSearchObject
     {
+        public string? Username { get; set; }
+        public string? Email { get; set; }
         public string? Title { get; set; }
-        public string? Author { get; set; }
+        public string? AuthorName { get; set; }
         public int? GenreId { get; set; }
-        public bool? IsUserBook { get; set; } 
-        public int? UserId { get; set; }
     }
 }

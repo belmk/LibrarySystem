@@ -14,5 +14,8 @@ namespace Library.Models.DTOs.Books
         public int PageNumber { get; set; }
         public int AvailableNumber { get; set; }
         public List<int> GenreIds { get; set; } = new List<int>();
+
+        public bool IsUserBook { get; set; } = false;
+        public int? UserId { get; set; }
     }
 }

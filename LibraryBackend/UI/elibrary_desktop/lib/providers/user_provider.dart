@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:elibrary_desktop/models/user.dart';
 import 'package:elibrary_desktop/providers/base_provider.dart';
+import 'package:elibrary_desktop/providers/subscription_provider.dart';
 import 'package:http/http.dart' as http;
 
 class UserProvider extends BaseProvider<User> {
@@ -8,6 +9,8 @@ class UserProvider extends BaseProvider<User> {
 
   @override
   User fromJson(data) => User.fromJson(data);
+
+   final SubscriptionProvider _subscriptionProvider = SubscriptionProvider();
 
   Future<User> warnUser(int? id) async {
     final url = "${BaseProvider.baseUrl}$endpoint/warn/$id";
@@ -42,4 +45,24 @@ class UserProvider extends BaseProvider<User> {
 
   return await update(id, user.toJson());
 }
+
+Future<bool> revokeSubscription(int userId) async {
+  final subscriptions = await _subscriptionProvider.get(filter: {
+    "UserId": userId,
+    "IsCancelled": false,
+  });
+
+  if (subscriptions.result.isEmpty) {
+    return false; 
+  }
+
+  final activeSub = subscriptions.result.first;
+
+  await _subscriptionProvider.update(activeSub.id!, {
+    "IsCancelled": true,
+  });
+
+  return true;
+}
+
 }

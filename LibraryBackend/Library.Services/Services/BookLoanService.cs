@@ -37,9 +37,9 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.User.Username.Contains(search.Username));
             }
 
-            if (search?.LoanDate != null) 
+            if (search?.LoanDate != null && search.LoanDate != DateTime.MinValue) 
             {
-                filteredQuery = filteredQuery.Where(x => x.LoanDate.Equals(search.LoanDate));
+                filteredQuery = filteredQuery.Where(x => x.LoanDate.Value.Date.Equals(search.LoanDate.Value.Date));
             }
 
             if (search?.LoanStatus != null) 
@@ -47,8 +47,29 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.LoanStatus.Equals(search.LoanStatus));
             }
 
+            if (search?.UserId != null) 
+            { 
+                filteredQuery = filteredQuery.Where(x => x.UserId.Equals(search.UserId));
+            }
+
 
             return filteredQuery;
         }
+
+        public override async Task BeforeUpdate(BookLoan entity, BookLoanUpdateDto update)
+        {
+            if (!update.LoanDate.HasValue && entity.LoanDate.HasValue)
+            {
+                update.LoanDate = entity.LoanDate;
+            }
+
+            if (!update.ReturnDate.HasValue && entity.ReturnDate.HasValue)
+            {
+                update.ReturnDate = entity.ReturnDate;
+            }
+
+            await base.BeforeUpdate(entity, update);
+        }
+
     }
 }

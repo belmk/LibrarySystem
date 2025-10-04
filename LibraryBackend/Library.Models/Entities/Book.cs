@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Library.Models.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,5 +17,9 @@ namespace Library.Services.Entities
         public int PageNumber { get; set; }
         public int AvailableNumber { get; set; }
         public ICollection<Genre> Genres { get; set; } = new List<Genre>();
+
+        public bool IsUserBook { get; set; } = false; 
+        public int? UserId { get; set; } 
+        public User? User { get; set; }
     }
 }

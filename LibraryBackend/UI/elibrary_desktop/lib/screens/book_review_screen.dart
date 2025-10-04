@@ -244,6 +244,20 @@ Widget build(BuildContext context) {
                   ),
                 ),
               ),
+              IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Resetuj filtere',
+            style: TextButton.styleFrom(foregroundColor: Colors.grey[700]),
+            onPressed: () {
+              setState(() {
+                _emailController.clear();
+                _nameController.clear();
+                _selectedDate = null;
+                _currentPage = 1;
+              });
+              _loadReviews();
+            },
+          ),
               const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.search),
