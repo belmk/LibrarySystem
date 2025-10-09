@@ -143,12 +143,6 @@ class _BookLoanHistoryScreenState extends State<BookLoanHistoryScreen> {
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          child: const Text("Zatvori"),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ],
     );
   }
 }

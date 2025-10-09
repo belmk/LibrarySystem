@@ -27,8 +27,7 @@ namespace Library.Services.Database
         public DbSet<ForumComment> ForumComments { get; set; }
         public DbSet<BookLoan> BookLoans { get; set; }
         public DbSet<Activity> Activities { get; set; }
-        //public DbSet<UserBook> UserBooks { get; set; }
-
+        public DbSet<BookExchange> BookExchanges { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -108,6 +107,30 @@ namespace Library.Services.Database
                 .HasOne(fc => fc.ForumThread)
                 .WithMany()
                 .HasForeignKey(fc => fc.ForumThreadId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BookExchange>()
+                .HasOne(be => be.OfferBook)
+                .WithMany()
+                .HasForeignKey(be => be.OfferBookId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BookExchange>()
+                .HasOne(be => be.ReceiverBook)
+                .WithMany()
+                .HasForeignKey(be => be.ReceiverBookId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BookExchange>()
+                .HasOne(be => be.OfferUser)
+                .WithMany()
+                .HasForeignKey(be => be.OfferUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BookExchange>()
+                .HasOne(be => be.ReceiverUser)
+                .WithMany()
+                .HasForeignKey(be => be.ReceiverUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
 

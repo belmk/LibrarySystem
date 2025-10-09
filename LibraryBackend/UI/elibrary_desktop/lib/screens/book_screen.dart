@@ -140,7 +140,7 @@ Widget build(BuildContext context) {
       );
 
       if (result == true) {
-        _loadBooks(); // refresh list if a new book was added
+        _loadBooks(); 
       }
 
       print('Create new book');

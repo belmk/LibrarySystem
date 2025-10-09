@@ -35,6 +35,11 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.Comment.Contains(search.Comment));
             }
 
+            if (search?.ForumThreadId != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.ForumThreadId ==  search.ForumThreadId);
+            }
+
             return filteredQuery;
         }
     }

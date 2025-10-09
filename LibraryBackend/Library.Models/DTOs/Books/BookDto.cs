@@ -1,5 +1,7 @@
 ﻿using Library.Models.DTOs.Authors;
 using Library.Models.DTOs.Genres;
+using Library.Models.DTOs.Users;
+using Library.Models.Entities;
 using Library.Services.Entities;
 using System;
 using System.Collections.Generic;
@@ -21,5 +23,6 @@ namespace Library.Models.DTOs.Books
 
         public bool IsUserBook { get; set; }
         public int? UserId { get; set; }
+        public UserDto? User { get; set; }
     }
 }

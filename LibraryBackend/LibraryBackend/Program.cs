@@ -24,6 +24,8 @@ builder.Services.AddTransient<IForumThreadService, ForumThreadService>();
 builder.Services.AddTransient<IForumCommentService, ForumCommentService>();
 builder.Services.AddTransient<IActivityService,  ActivityService>();
 builder.Services.AddTransient<IBookLoanService, BookLoanService>();
+builder.Services.AddTransient<IBookExchangeService, BookExchangeService>();
+builder.Services.AddTransient<IDashboardService, DashboardService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 
 builder.Services.AddControllers();

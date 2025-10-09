@@ -2,6 +2,7 @@
 using Library.Models;
 using Library.Models.DTOs.Activities;
 using Library.Models.DTOs.Authors;
+using Library.Models.DTOs.BookExchanges;
 using Library.Models.DTOs.BookLoans;
 using Library.Models.DTOs.BookReviews;
 using Library.Models.DTOs.Books;
@@ -12,7 +13,6 @@ using Library.Models.DTOs.Genres;
 using Library.Models.DTOs.Notifications;
 using Library.Models.DTOs.Roles;
 using Library.Models.DTOs.Subscriptions;
-using Library.Models.DTOs.UserBooks;
 using Library.Models.DTOs.Users;
 using Library.Models.Entities;
 using Library.Models.SearchObjects;
@@ -96,9 +96,9 @@ namespace Library.Services.Mappings
             CreateMap<ActivityUpdateDto, Activity>();
 
 
-            CreateMap<UserBook, UserBookDto>();
-            CreateMap<UserBookInsertDto, UserBook>();
-            CreateMap<UserBookUpdateDto,UserBook>();
+            CreateMap<BookExchange, BookExchangeDto>();
+            CreateMap<BookExchangeInsertDto, BookExchange>();
+            CreateMap<BookExchangeUpdateDto, BookExchange>();
         }
     }
 }

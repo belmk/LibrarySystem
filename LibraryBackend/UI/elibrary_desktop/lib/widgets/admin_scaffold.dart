@@ -72,7 +72,6 @@ class AdminScaffold extends StatelessWidget {
                 ),
               ],
             ),
-            // Horizontal menu with equal-width buttons
             SizedBox(
               height: 60,
               child: Row(

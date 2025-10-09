@@ -1,4 +1,5 @@
 import 'package:elibrary_desktop/models/author.dart';
+import 'package:elibrary_desktop/models/user.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'genre.dart';
@@ -16,6 +17,7 @@ class Book {
 
   bool? isUserBook;
   int? userId;
+  User? user;
 
  Book(
     this.id,
@@ -27,6 +29,7 @@ class Book {
     this.genres,
     this.isUserBook,
     this.userId,
+    this.user,
   );
   
   factory Book.fromJson(Map<String, dynamic> json) => _$BookFromJson(json);

@@ -49,7 +49,7 @@ namespace Library.Services.Services
         {
             var filteredQuery = base.AddFilter(query, search);
 
-            filteredQuery = filteredQuery.Include(x => x.Genres).Include(y => y.Author);
+            filteredQuery = filteredQuery.Include(x => x.Genres).Include(y => y.Author).Include(z => z.User);
 
             if (!string.IsNullOrWhiteSpace(search?.Title))
             {

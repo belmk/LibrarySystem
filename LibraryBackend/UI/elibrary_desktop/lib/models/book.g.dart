@@ -20,6 +20,9 @@ Book _$BookFromJson(Map<String, dynamic> json) => Book(
       .toList(),
   json['isUserBook'] as bool?,
   (json['userId'] as num?)?.toInt(),
+  json['user'] == null
+      ? null
+      : User.fromJson(json['user'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$BookToJson(Book instance) => <String, dynamic>{
@@ -32,4 +35,5 @@ Map<String, dynamic> _$BookToJson(Book instance) => <String, dynamic>{
   'genres': instance.genres,
   'isUserBook': instance.isUserBook,
   'userId': instance.userId,
+  'user': instance.user,
 };

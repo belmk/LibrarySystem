@@ -207,59 +207,95 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
   }
 
   Widget _buildBookCard(Book book) {
-    final genreNames = book.genres?.map((g) => g.name).whereType<String>().join(', ') ?? '-';
+  final genreNames = book.genres?.map((g) => g.name).whereType<String>().join(', ') ?? '-';
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(book.title ?? '-', style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text(
-              book.author != null
-                  ? '${book.author!.firstName ?? ''} ${book.author!.lastName ?? ''}'
-                  : '-',
+  return Card(
+    elevation: 4,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    child: Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            book.title ?? 'Untitled',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${book.author?.firstName ?? ''} ${book.author?.lastName ?? ''}'.trim().isNotEmpty
+                ? '${book.author!.firstName} ${book.author!.lastName}'
+                : '-',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Korisnik: ${book.user!.username ?? 'Nepoznat'}',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: Text(
+              book.description ?? 'Bez opisa',
               style: const TextStyle(fontSize: 14),
+              maxLines: 5,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
-            Expanded(
-              child: Text(
-                book.description ?? 'Bez opisa',
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                'https://plus.unsplash.com/premium_photo-1669652639337-c513cc42ead6?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                fit: BoxFit.cover,
+                width: double.infinity,
               ),
             ),
-            const SizedBox(height: 4),
-            Text('Žanr: $genreNames'),
-            Text('Stranica: ${book.pageNumber ?? '-'}'),
-            Text('Dostupno: ${book.availableNumber ?? 0}'),
-            const SizedBox(height: 4),
-            Text('Korisnik ID: ${book.userId ?? 'Nepoznat'}'),
-            const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  tooltip: 'Obriši',
-                  onPressed: () => _confirmDelete(book),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.warning, color: Colors.orange),
-                  tooltip: 'Obriši i upozori korisnika',
-                  onPressed: () => _confirmDelete(book, warnUser: true),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            genreNames,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Text(
+                'Broj stranica: ${book.pageNumber ?? '-'}',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                tooltip: 'Obriši',
+                onPressed: () => _confirmDelete(book),
+              ),
+              IconButton(
+                icon: const Icon(Icons.warning, color: Colors.orange, size: 20),
+                tooltip: 'Obriši i upozori korisnika',
+                onPressed: () => _confirmDelete(book, warnUser: true),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Dostupno: ${book.availableNumber ?? 0}',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget _buildPagination() {
     return Row(

@@ -1,5 +1,4 @@
-﻿using Library.Models.DTOs.UserBooks;
-using Library.Models.DTOs.Users;
+﻿using Library.Models.DTOs.BookExchanges;
 using Library.Models.SearchObjects;
 using Library.Services.Interfaces.Base;
 using System;
@@ -10,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Library.Services.Interfaces
 {
-    public interface IUserBookService : ICRUDService<UserBookDto, UserBookSearchObject, UserBookInsertDto, UserBookUpdateDto>
+    public interface IBookExchangeService : ICRUDService<BookExchangeDto, BookExchangeSearchObject, BookExchangeInsertDto, BookExchangeUpdateDto>
     {
     }
 }

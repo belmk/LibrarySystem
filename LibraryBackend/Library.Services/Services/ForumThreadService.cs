@@ -41,6 +41,7 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.User.Username.Contains(search.Username));
             }
 
+            filteredQuery = filteredQuery.OrderByDescending(x => x.ThreadDate);
 
             return filteredQuery;
         }

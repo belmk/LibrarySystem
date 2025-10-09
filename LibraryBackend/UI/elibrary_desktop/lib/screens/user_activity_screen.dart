@@ -84,31 +84,36 @@ class _UserActivityDialogState extends State<UserActivityDialog> {
                       : _activities.isEmpty
                           ? const Center(child: Text('Nema aktivnosti.'))
                           : SingleChildScrollView(
-                              child: DataTable(
-                                columns: const [
-                                  DataColumn(label: Text('Opis')),
-                                  DataColumn(label: Text('Datum aktivnosti')),
-                                ],
-                                rows: _activities.map((activity) {
-                                  return DataRow(cells: [
-                                    DataCell(
-                                    SizedBox(
-                                      width: 300,
-                                      child: Tooltip(
-                                        message: activity.description ?? '-',
-                                        child: Text(
-                                          activity.description ?? '-',
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
+                              scrollDirection: Axis.vertical,
+                              child: SizedBox(
+                                width: double.infinity, 
+                                child: DataTable(
+                                  columnSpacing: 20, 
+                                  columns: const [
+                                    DataColumn(label: Text('Opis')),
+                                    DataColumn(label: Text('Datum aktivnosti')),
+                                  ],
+                                  rows: _activities.map((activity) {
+                                    return DataRow(cells: [
+                                      DataCell(
+                                        SizedBox(
+                                          width: 300,
+                                          child: Tooltip(
+                                            message: activity.description ?? '-',
+                                            child: Text(
+                                              activity.description ?? '-',
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                    DataCell(Text(
-                                      DateTimeHelper.formatDateTime(activity.activityDate),
-                                    )),
-                                  ]);
-                                }).toList(),
+                                      DataCell(
+                                        Text(DateTimeHelper.formatDateTime(activity.activityDate)),
+                                      ),
+                                    ]);
+                                  }).toList(),
+                                ),
                               ),
                             ),
             ),

@@ -1,6 +1,8 @@
+import 'package:elibrary_desktop/screens/book_exchange_screen.dart';
 import 'package:elibrary_desktop/screens/book_loan_screen.dart';
 import 'package:elibrary_desktop/screens/book_screen.dart';
 import 'package:elibrary_desktop/screens/complaint_screen.dart';
+import 'package:elibrary_desktop/screens/forum_screen.dart';
 import 'package:elibrary_desktop/screens/user_book_screen.dart';
 import 'package:elibrary_desktop/screens/user_screen.dart';
 import 'package:elibrary_desktop/widgets/admin_scaffold.dart';
@@ -31,9 +33,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         currentTitle = "Skladište";
         currentScreen = const BookListScreen();
 
+      case 2:
+        currentTitle = "Zamjena knjiga";
+        currentScreen = const BookExchangeScreen();
+
       case 3:
         currentTitle = "Korisničke knjige";
         currentScreen = const UserBookListScreen();
+
       case 4:
         currentTitle = "Žalbe";
         currentScreen = const ComplaintScreen();
@@ -41,9 +48,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       case 5:
         currentTitle = "Evidencija posudbi";
         currentScreen = const BookLoanScreen();
+
       case 6:
         currentTitle = "Recenzije";
         currentScreen = const BookReviewScreen();
+
+      case 7:
+        currentTitle = "Forum";
+        currentScreen = const ForumScreen();
 
       default:
         currentTitle = "Početna";
