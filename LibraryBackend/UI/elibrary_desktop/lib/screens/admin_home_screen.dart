@@ -1,7 +1,9 @@
+import 'package:elibrary_desktop/providers/dashboard_provider.dart';
 import 'package:elibrary_desktop/screens/book_exchange_screen.dart';
 import 'package:elibrary_desktop/screens/book_loan_screen.dart';
 import 'package:elibrary_desktop/screens/book_screen.dart';
 import 'package:elibrary_desktop/screens/complaint_screen.dart';
+import 'package:elibrary_desktop/screens/dashboard_screen.dart';
 import 'package:elibrary_desktop/screens/forum_screen.dart';
 import 'package:elibrary_desktop/screens/user_book_screen.dart';
 import 'package:elibrary_desktop/screens/user_screen.dart';
@@ -56,6 +58,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       case 7:
         currentTitle = "Forum";
         currentScreen = const ForumScreen();
+
+      case 8:
+        currentTitle = "Dashboard";
+        currentScreen = const DashboardScreen();
 
       default:
         currentTitle = "Početna";
