@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Library.Models.DTOs.Activities;
+using Library.Models.DTOs.ForumThreads;
 using Library.Models.DTOs.Subscriptions;
 using Library.Models.Entities;
 using Library.Models.SearchObjects;
@@ -16,8 +18,25 @@ namespace Library.Services.Services
 {
     public class SubscriptionService : BaseCRUDService<SubscriptionDto, Subscription, SubscriptionSearchObject, SubscriptionInsertDto, SubscriptionUpdateDto>, ISubscriptionService
     {
-        public SubscriptionService(LibraryDbContext context, IMapper mapper) : base(context, mapper) { }
+        private readonly IActivityService _activityService;
+        public SubscriptionService(LibraryDbContext context, IMapper mapper, IActivityService activityService) : base(context, mapper) 
+        { 
+            _activityService = activityService;
+        }
 
+        public override async Task BeforeInsert(Subscription entity, SubscriptionInsertDto insert)
+        {
+            await base.BeforeInsert(entity, insert);
+
+            var activity = new ActivityInsertDto
+            {
+                UserId = entity.UserId,
+                Description = $"Pretplatio/la se za cijenu {entity.Price}KM do {entity.EndDate}",
+                ActivityDate = DateTime.UtcNow,
+            };
+
+            await _activityService.Insert(activity);
+        }
         public override IQueryable<Subscription> AddFilter(IQueryable<Subscription> query, SubscriptionSearchObject? search = null)
         {
             var filteredQuery = base.AddFilter(query, search);

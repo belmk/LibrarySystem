@@ -345,8 +345,9 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
                           crossAxisCount: 3,
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
-                          childAspectRatio: 0.8,
+                          childAspectRatio: 1, 
                         ),
+
                         itemCount: _books.length,
                         itemBuilder: (_, index) => _buildBookCard(_books[index]),
                       ),

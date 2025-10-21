@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Library.Models.DTOs.Activities;
 using Library.Models.DTOs.Complaints;
+using Library.Models.DTOs.Subscriptions;
 using Library.Models.Entities;
 using Library.Models.SearchObjects;
 using Library.Services.Database;
@@ -16,7 +18,26 @@ namespace Library.Services.Services
 {
     public class ComplaintService : BaseCRUDService<ComplaintDto, Complaint, ComplaintSearchObject, ComplaintInsertDto, ComplaintUpdateDto>, IComplaintService
     {
-        public ComplaintService(LibraryDbContext context, IMapper mapper) : base(context, mapper) { }
+        private readonly IActivityService _activityService;
+
+        public ComplaintService(LibraryDbContext context, IMapper mapper, IActivityService activityService) : base(context, mapper) 
+        {
+            _activityService = activityService;
+        }
+
+        public override async Task BeforeInsert(Complaint entity, ComplaintInsertDto insert)
+        {
+            await base.BeforeInsert(entity, insert);
+
+            var activity = new ActivityInsertDto
+            {
+                UserId = entity.SenderId,
+                Description = $"Poslao/la žalbu protiv {entity.Target.Username} ({entity.Target.Email}): \"{entity.Reason}\"",
+                ActivityDate = DateTime.UtcNow,
+            };
+
+            await _activityService.Insert(activity);
+        }
 
         public override IQueryable<Complaint> AddFilter(IQueryable<Complaint> query, ComplaintSearchObject? search = null)
         {

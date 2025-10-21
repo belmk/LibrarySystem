@@ -246,9 +246,15 @@ Widget _buildIconInfoRow(IconData icon, String value, {Color? iconColor}) {
         Icon(icon, size: 18, color: iconColor ?? Colors.blue),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 14),
+          child: Tooltip(
+            message: value,
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 14),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              softWrap: false,
+            ),
           ),
         ),
       ],

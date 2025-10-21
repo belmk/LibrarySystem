@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Library.Models.DTOs.Activities;
 using Library.Models.DTOs.BookReviews;
+using Library.Models.DTOs.Complaints;
 using Library.Models.Entities;
 using Library.Models.SearchObjects;
 using Library.Services.Database;
@@ -16,7 +18,25 @@ namespace Library.Services.Services
 {
     public class BookReviewService : BaseCRUDService<BookReviewDto, BookReview, BookReviewSearchObject, BookReviewInsertDto, BookReviewUpdateDto>, IBookReviewService
     {
-        public BookReviewService(LibraryDbContext context, IMapper mapper) : base(context, mapper) { }
+        private readonly IActivityService _activityService;
+        public BookReviewService(LibraryDbContext context, IMapper mapper, IActivityService activityService) : base(context, mapper) 
+        {
+            _activityService = activityService;
+        }
+
+        public override async Task BeforeInsert(BookReview entity, BookReviewInsertDto insert)
+        {
+            await base.BeforeInsert(entity, insert);
+
+            var activity = new ActivityInsertDto
+            {
+                UserId = entity.UserId,
+                Description = $"Ostavio/la recenziju {entity.Rating}/5 na knjigu {entity.Book.Title}",
+                ActivityDate = DateTime.UtcNow,
+            };
+
+            await _activityService.Insert(activity);
+        }
 
         public override IQueryable<BookReview> AddFilter(IQueryable<BookReview> query, BookReviewSearchObject? search = null)
         {

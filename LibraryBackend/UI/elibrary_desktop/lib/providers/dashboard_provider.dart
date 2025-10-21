@@ -23,7 +23,6 @@ class DashboardProvider {
 
   Future<List<BookLoanStatsDto>> getTopBorrowedBooks(int count) async {
     final uri = Uri.parse('${BaseProvider.baseUrl}$_base/top-borrowed-books?count=$count');
-    print('Calling: ${uri.toString()}');
     final res = await http.get(uri, headers: createHeaders());
 
     if (res.statusCode == 200) {
@@ -72,6 +71,8 @@ class DashboardProvider {
 
   Future<List<MonthlyRevenueDto>> getBorrowStats(int months) async {
     final uri = Uri.parse('${BaseProvider.baseUrl}$_base/borrow-stats?months=$months');
+    print('Calling: ${uri.toString()}');
+
     final res = await http.get(uri, headers: createHeaders());
 
     if (res.statusCode == 200) {

@@ -16,6 +16,8 @@ class UserFormDialog extends StatefulWidget {
 }
 
 class _UserFormDialogState extends State<UserFormDialog> {
+  final _formKey = GlobalKey<FormState>();
+
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
   late TextEditingController _usernameController;
@@ -39,19 +41,40 @@ class _UserFormDialogState extends State<UserFormDialog> {
     super.dispose();
   }
 
+  void _submitForm() {
+    if (_formKey.currentState?.validate() ?? false) {
+      final updatedUser = User(
+        id: widget.user.id,
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        username: _usernameController.text.trim(),
+        email: _emailController.text.trim(),
+      );
+
+      widget.onSave(updatedUser);
+      Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text("Uredi korisnika"),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildTextField("Ime", _firstNameController),
-            _buildTextField("Prezime", _lastNameController),
-            _buildTextField("Korisničko ime", _usernameController),
-            _buildTextField("Email", _emailController),
-          ],
+      content: SizedBox(
+        width: 400, // 👈 Fixed width
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildTextField("Ime", _firstNameController),
+                _buildTextField("Prezime", _lastNameController),
+                _buildTextField("Korisničko ime", _usernameController),
+                _buildTextField("Email", _emailController),
+              ],
+            ),
+          ),
         ),
       ),
       actions: [
@@ -60,19 +83,7 @@ class _UserFormDialogState extends State<UserFormDialog> {
           child: const Text("Otkaži"),
         ),
         ElevatedButton(
-          onPressed: () {
-                final updatedUser = User(
-            id: widget.user.id,
-            firstName: _firstNameController.text.trim(),
-            lastName: _lastNameController.text.trim(),
-            username: _usernameController.text.trim(),
-            email: _emailController.text.trim(),
-          );
-
-
-            widget.onSave(updatedUser);
-            Navigator.of(context).pop();
-          },
+          onPressed: _submitForm,
           child: const Text("Spasi"),
         ),
       ],
@@ -82,12 +93,18 @@ class _UserFormDialogState extends State<UserFormDialog> {
   Widget _buildTextField(String label, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: TextField(
+      child: TextFormField(
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
         ),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return 'Polje ne smije biti prazno.';
+          }
+          return null;
+        },
       ),
     );
   }

@@ -82,32 +82,64 @@ namespace Library.Services.Services
         {
             var fromDate = DateTime.Now.AddMonths(-months + 1);
 
-            return await _context.BookLoans
-                .Where(bl => bl.LoanDate != null && bl.LoanDate >= fromDate)
-                .GroupBy(bl => new { bl.LoanDate.Value.Year, bl.LoanDate.Value.Month })
+            var rawData = await _context.Subscriptions
+                .Where(s => s.StartDate >= fromDate)
+                .GroupBy(s => new { s.StartDate.Year, s.StartDate.Month })
+                .Select(g => new
+                {
+                    g.Key.Year,
+                    g.Key.Month,
+                    TotalRevenue = g.Sum(s => s.Price)
+                })
+                .ToListAsync();
+
+            var projected = rawData
                 .Select(g => new MonthlyRevenueDto
                 {
-                    Month = $"{g.Key.Month:D2}/{g.Key.Year}",
-                    Count = g.Count()
+                    Month = $"{g.Month:D2}/{g.Year}", 
+                    Count = (int)g.TotalRevenue
                 })
                 .OrderBy(g => g.Month)
-                .ToListAsync();
+                .ToList();
+
+            return projected;
         }
+
+
 
         public async Task<List<MonthlyRevenueDto>> GetProfitLastXMonthsAsync(int months)
         {
-            var fromDate = DateTime.Now.AddMonths(-months + 1);
+            var now = DateTime.Now;
+            var fromDate = new DateTime(now.Year, now.Month, 1).AddMonths(-months + 1); 
 
-            return await _context.Subscriptions
-                .Where(s => s.StartDate >= fromDate && !s.IsCancelled)
+            var rawData = await _context.Subscriptions
+                .Where(s => s.StartDate >= fromDate)
                 .GroupBy(s => new { s.StartDate.Year, s.StartDate.Month })
-                .Select(g => new MonthlyRevenueDto
+                .Select(g => new
                 {
-                    Month = $"{g.Key.Month:D2}/{g.Key.Year}",
-                    Count = (int)g.Sum(s => s.Price) // You can use `decimal` in DTO if needed
+                    g.Key.Year,
+                    g.Key.Month,
+                    TotalRevenue = g.Sum(s => s.Price)
                 })
-                .OrderBy(g => g.Month)
                 .ToListAsync();
+
+            var allMonths = Enumerable.Range(0, months)
+                .Select(i => fromDate.AddMonths(i))
+                .ToList();
+
+            var projected = allMonths
+                .Select(date =>
+                {
+                    var match = rawData.FirstOrDefault(d => d.Year == date.Year && d.Month == date.Month);
+                    return new MonthlyRevenueDto
+                    {
+                        Month = $"{date.Month:D2}/{date.Year}", 
+                        Count = (int?)match?.TotalRevenue ?? 0
+                    };
+                })
+                .ToList();
+
+            return projected;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Library.Models.DTOs.Activities;
 using Library.Models.DTOs.ForumComments;
 using Library.Models.Entities;
 using Library.Models.SearchObjects;
@@ -16,8 +17,30 @@ namespace Library.Services.Services
 {
     public class ForumCommentService : BaseCRUDService<ForumCommentDto, ForumComment, ForumCommentSearchObject, ForumCommentInsertDto, ForumCommentUpdateDto>, IForumCommentService
     {
-        public ForumCommentService(LibraryDbContext context, IMapper mapper) : base(context, mapper) { }
+        private readonly IActivityService _activityService;
 
+        public ForumCommentService(
+            LibraryDbContext context,
+            IMapper mapper,
+            IActivityService activityService)
+            : base(context, mapper)
+        {
+            _activityService = activityService;
+        }
+
+        public override async Task BeforeInsert(ForumComment entity, ForumCommentInsertDto insert)
+        {
+            await base.BeforeInsert(entity, insert);
+
+            var activity = new ActivityInsertDto
+            {
+                UserId = entity.UserId,
+                Description = $"Napisao/la komentar: \"{entity.Comment}\"",
+                ActivityDate = DateTime.UtcNow,
+            };
+
+            await _activityService.Insert(activity);
+        }
         public override IQueryable<ForumComment> AddFilter(IQueryable<ForumComment> query, ForumCommentSearchObject? search = null)
         {
             var filteredQuery = base.AddFilter(query, search);

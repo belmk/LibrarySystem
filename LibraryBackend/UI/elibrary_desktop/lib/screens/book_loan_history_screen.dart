@@ -7,7 +7,11 @@ class BookLoanHistoryScreen extends StatefulWidget {
   final int userId;
   final String username;
 
-  const BookLoanHistoryScreen({super.key, required this.userId, required this.username});
+  const BookLoanHistoryScreen({
+    super.key,
+    required this.userId,
+    required this.username,
+  });
 
   @override
   State<BookLoanHistoryScreen> createState() => _BookLoanHistoryScreenState();
@@ -24,7 +28,8 @@ class _BookLoanHistoryScreenState extends State<BookLoanHistoryScreen> {
   final int _pageSize = 5;
   int _totalCount = 0;
 
-  int get _totalPages => _totalCount > 0 ? (_totalCount / _pageSize).ceil() : 1;
+  int get _totalPages =>
+      _totalCount > 0 ? (_totalCount / _pageSize).ceil() : 1;
 
   @override
   void initState() {
@@ -79,6 +84,9 @@ class _BookLoanHistoryScreenState extends State<BookLoanHistoryScreen> {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: DataTable(
+        columnSpacing: 24,
+        dataRowMinHeight: 48,   // minimum row height
+        dataRowMaxHeight: 48,   // maximum row height (same => fixed height)
         columns: const [
           DataColumn(label: Text("Naziv knjige")),
           DataColumn(label: Text("Datum pozajmice")),
@@ -87,9 +95,31 @@ class _BookLoanHistoryScreenState extends State<BookLoanHistoryScreen> {
         rows: _loanHistory.map((loan) {
           return DataRow(
             cells: [
-              DataCell(Text(loan.book?.title ?? "-")),
-              DataCell(Text(DateTimeHelper.formatDateTime(loan.loanDate))),
-              DataCell(Text(DateTimeHelper.formatDateTime(loan.returnDate))),
+              DataCell(
+                Tooltip(
+                  message: loan.book?.title ?? "-",
+                  child: SizedBox(
+                    width: 200,
+                    child: Text(
+                      loan.book?.title ?? "-",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false,
+                      style: const TextStyle(height: 1.0), // optional tightening
+                    ),
+                  ),
+                ),
+              ),
+              DataCell(Text(
+                DateTimeHelper.formatDateTime(loan.loanDate),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )),
+              DataCell(Text(
+                DateTimeHelper.formatDateTime(loan.returnDate),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )),
             ],
           );
         }).toList(),
