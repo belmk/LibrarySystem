@@ -23,6 +23,8 @@ Book _$BookFromJson(Map<String, dynamic> json) => Book(
   json['user'] == null
       ? null
       : User.fromJson(json['user'] as Map<String, dynamic>),
+  json['coverImageBase64'] as String?,
+  json['coverImageContentType'] as String?,
 );
 
 Map<String, dynamic> _$BookToJson(Book instance) => <String, dynamic>{
@@ -36,4 +38,6 @@ Map<String, dynamic> _$BookToJson(Book instance) => <String, dynamic>{
   'isUserBook': instance.isUserBook,
   'userId': instance.userId,
   'user': instance.user,
+  'coverImageBase64': instance.coverImageBase64,
+  'coverImageContentType': instance.coverImageContentType,
 };

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:elibrary_desktop/models/genre.dart';
 import 'package:elibrary_desktop/models/author.dart';
-import 'package:elibrary_desktop/models/book.dart'; // Ensure this exists
+import 'package:elibrary_desktop/models/book.dart'; 
 import 'package:elibrary_desktop/providers/book_provider.dart';
 import 'package:elibrary_desktop/providers/author_provider.dart';
 import 'package:elibrary_desktop/providers/genre_provider.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+
 
 class BookFormScreen extends StatefulWidget {
   final Book? book; // null for insert, not null for edit
@@ -35,6 +39,11 @@ class _BookFormScreenState extends State<BookFormScreen> {
 
   bool _isSubmitting = false;
 
+  File? _selectedImage;
+  String? _imageBase64;
+  String? _imageFormat;
+
+
   @override
   void initState() {
     super.initState();
@@ -48,8 +57,38 @@ class _BookFormScreenState extends State<BookFormScreen> {
       _availableNumberController.text = book.availableNumber.toString();
       _selectedAuthorId = book.author?.id;
       _selectedGenreIds = (book.genres ?? []).map((g) => g.id!).toList();
+      if (book.coverImageBase64 != null && book.coverImageBase64!.isNotEmpty) {
+        _imageBase64 = book.coverImageBase64;
+        _imageFormat = book.coverImageContentType;
+      }
     }
   }
+
+  Future<void> _pickImage() async {
+  final result = await FilePicker.platform.pickFiles(type: FileType.image);
+
+  if (result != null && result.files.single.path != null) {
+    final file = File(result.files.single.path!);
+    final bytes = await file.readAsBytes();
+
+    setState(() {
+      _selectedImage = file;
+      _imageBase64 = base64Encode(bytes);
+
+      final ext = file.path.split('.').last.toLowerCase();
+
+      if (ext == 'png') {
+        _imageFormat = 'image/png';
+      } else if (ext == 'jpg' || ext == 'jpeg') {
+        _imageFormat = 'image/jpeg';
+      } else {
+        _imageFormat = 'application/octet-stream';
+      }
+    });
+  }
+}
+
+
 
   Future<void> _loadAuthorsAndGenres() async {
     try {
@@ -84,6 +123,8 @@ class _BookFormScreenState extends State<BookFormScreen> {
       "PageNumber": int.tryParse(_pageNumberController.text.trim()) ?? 0,
       "AvailableNumber": int.tryParse(_availableNumberController.text.trim()) ?? 0,
       "GenreIds": _selectedGenreIds,
+      "CoverImageBase64": _imageBase64,
+      "CoverImageContentType": _imageFormat,
     };
 
     setState(() => _isSubmitting = true);
@@ -159,6 +200,53 @@ class _BookFormScreenState extends State<BookFormScreen> {
                           ? "Unesite validan broj"
                           : null,
                 ),
+                const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Naslovna slika", style: Theme.of(context).textTheme.titleMedium),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      height: 180,
+                      width: double.maxFinite,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.grey[100],
+                      ),
+                      child: _selectedImage != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                _selectedImage!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              ),
+                            )
+                          : (_imageBase64 != null && _imageBase64!.isNotEmpty)
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.memory(
+                                    base64Decode(_imageBase64!),
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                  ),
+                                )
+                              : Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
+                                      SizedBox(height: 8),
+                                      Text("Kliknite da izaberete sliku"),
+                                    ],
+                                  ),
+                                ),
+                    ),
+                  ),
+
                 const SizedBox(height: 12),
                 DropdownButtonFormField<int>(
                   value: _selectedAuthorId,

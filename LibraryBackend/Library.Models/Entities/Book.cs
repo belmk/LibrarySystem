@@ -21,5 +21,8 @@ namespace Library.Services.Entities
         public bool IsUserBook { get; set; } = false; 
         public int? UserId { get; set; } 
         public User? User { get; set; }
+
+        public byte[]? CoverImage { get; set; }            
+        public string? CoverImageContentType { get; set; }
     }
 }

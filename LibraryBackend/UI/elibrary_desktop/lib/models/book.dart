@@ -19,6 +19,9 @@ class Book {
   int? userId;
   User? user;
 
+  String? coverImageBase64;
+  String? coverImageContentType;
+
  Book(
     this.id,
     this.author,
@@ -30,6 +33,8 @@ class Book {
     this.isUserBook,
     this.userId,
     this.user,
+    this.coverImageBase64,
+    this.coverImageContentType
   );
   
   factory Book.fromJson(Map<String, dynamic> json) => _$BookFromJson(json);

@@ -30,9 +30,19 @@ namespace Library.Services.Mappings
         public MappingProfile() {
 
             CreateMap<Book, BookDto>()
-                .ForMember(dest => dest.Genres, opt => opt.MapFrom(src => src.Genres));
-            CreateMap<BookInsertDto, Book>();
-            CreateMap<BookUpdateDto, Book>();
+                .ForMember(dest => dest.Genres, opt => opt.MapFrom(src => src.Genres))
+                .ForMember(dest => dest.CoverImageBase64,
+                           opt => opt.MapFrom(src => src.CoverImage != null ? Convert.ToBase64String(src.CoverImage) : null))
+                .ForMember(dest => dest.CoverImageContentType,
+                           opt => opt.MapFrom(src => src.CoverImageContentType));
+
+            CreateMap<BookInsertDto, Book>()
+                .ForMember(dest => dest.CoverImage, opt => opt.Ignore()) 
+                .ForMember(dest => dest.CoverImageContentType, opt => opt.MapFrom(src => src.CoverImageContentType));
+
+            CreateMap<BookUpdateDto, Book>()
+                .ForMember(dest => dest.CoverImage, opt => opt.Ignore()) 
+                .ForMember(dest => dest.CoverImageContentType, opt => opt.MapFrom(src => src.CoverImageContentType));
 
 
             CreateMap<Genre, GenreDto>();

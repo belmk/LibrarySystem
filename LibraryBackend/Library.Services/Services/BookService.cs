@@ -25,6 +25,14 @@ namespace Library.Services.Services
                 .ToListAsync();
 
             entity.Genres = genres;
+
+            if (!string.IsNullOrWhiteSpace(insert.CoverImageBase64))
+            {
+                entity.CoverImage = Convert.FromBase64String(insert.CoverImageBase64);
+                entity.CoverImageContentType = insert.CoverImageContentType;
+            }
+
+            await base.BeforeInsert(entity, insert);
         }
 
         public override async Task BeforeUpdate(Book entity, BookUpdateDto update)
@@ -41,6 +49,14 @@ namespace Library.Services.Services
             {
                 entity.Genres.Add(genre);
             }
+
+            if (!string.IsNullOrWhiteSpace(update.CoverImageBase64))
+            {
+                entity.CoverImage = Convert.FromBase64String(update.CoverImageBase64);
+                entity.CoverImageContentType = update.CoverImageContentType;
+            }
+
+            await base.BeforeUpdate(entity, update);
         }
 
 

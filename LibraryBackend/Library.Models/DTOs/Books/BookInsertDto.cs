@@ -17,5 +17,8 @@ namespace Library.Models.DTOs.Books
 
         public bool IsUserBook { get; set; } = false;
         public int? UserId { get; set; }
+
+        public string? CoverImageBase64 { get; set; }
+        public string? CoverImageContentType { get; set; }
     }
 }
