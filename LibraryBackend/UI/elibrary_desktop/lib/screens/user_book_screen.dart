@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:elibrary_desktop/models/book.dart';
 import 'package:elibrary_desktop/models/genre.dart';
@@ -247,16 +249,22 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                'https://plus.unsplash.com/premium_photo-1669652639337-c513cc42ead6?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                fit: BoxFit.cover,
-                width: double.infinity,
+           SizedBox(
+              width: 150, 
+              height: 150,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: (book.coverImageBase64 != null && book.coverImageBase64!.isNotEmpty)
+                    ? Image.memory(
+                        base64Decode(book.coverImageBase64!),
+                        fit: BoxFit.fill,
+                      )
+                    : Image.asset(
+                        'assets/placeholder.jpg',
+                        fit: BoxFit.fill,
+                      ),
               ),
             ),
-          ),
           const SizedBox(height: 8),
           Text(
             genreNames,

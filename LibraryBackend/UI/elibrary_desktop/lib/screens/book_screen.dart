@@ -348,22 +348,24 @@ class BookCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Expanded(
-  child: ClipRRect(
-    borderRadius: BorderRadius.circular(8),
-    child: (book.coverImageBase64 != null && book.coverImageBase64!.isNotEmpty)
-        ? Image.memory(
-            base64Decode(book.coverImageBase64!),
-            fit: BoxFit.cover,
-            width: double.infinity,
-          )
-        : Image.asset(
-            'assets/placeholder.jpg', 
-            fit: BoxFit.cover,
-            width: double.infinity,
-          ),
-  ),
-),
+            SizedBox(
+              width: 150, 
+              height: 150,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: (book.coverImageBase64 != null && book.coverImageBase64!.isNotEmpty)
+                    ? Image.memory(
+                        base64Decode(book.coverImageBase64!),
+                        fit: BoxFit.fill,
+                      )
+                    : Image.asset(
+                        'assets/placeholder.jpg',
+                        fit: BoxFit.fill,
+                      ),
+              ),
+            ),
+
+
 
 
 const SizedBox(height: 8),

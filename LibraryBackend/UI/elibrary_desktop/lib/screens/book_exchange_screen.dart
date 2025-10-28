@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:elibrary_desktop/models/book.dart';
 import 'package:elibrary_desktop/models/user.dart';
 import 'package:flutter/material.dart';
@@ -150,117 +152,130 @@ class _BookExchangeScreenState extends State<BookExchangeScreen> {
   final receiverBook = exchange.receiverBook;
   final status = exchange.bookExchangeStatus ?? BookExchangeStatus.BookDeliveryPhase;
 
-  const String placeholderImage = 'https://plus.unsplash.com/premium_photo-1669652639337-c513cc42ead6?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
-
   String getActionLabel() {
     return status == BookExchangeStatus.BookDeliveryPhase
         ? 'Potvrdi isporuku'
         : 'Potvrdi prijem';
   }
 
-  Widget buildUserBookInfo(String label, User? user, Book? book) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              const Icon(Icons.person, size: 20),
-              const SizedBox(width: 6),
-              Text(user?.username ?? "-"),
-            ],
-          ),
-          Row(
-            children: [
-              const Icon(Icons.email, size: 20),
-              const SizedBox(width: 6),
-              Expanded(child: Text(user?.email ?? "-")),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text("Knjiga", style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.book, size: 20),
-                        const SizedBox(width: 6),
-                        Expanded(child: Text(book?.title ?? "-")),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.person_outline, size: 20),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            (book?.author != null)
-                                ? "${book!.author!.firstName} ${book.author!.lastName}"
-                                : "-",
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.category, size: 20),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            (book?.genres?.map((g) => g.name).join(", ")) ?? "-",
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.description, size: 20),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            book?.description ?? "-",
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+ Widget buildUserBookInfo(String label, User? user, Book? book) {
+  return Expanded(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const Icon(Icons.person, size: 20),
+            const SizedBox(width: 6),
+            Text(user?.username ?? "-"),
+          ],
+        ),
+        Row(
+          children: [
+            const Icon(Icons.email, size: 20),
+            const SizedBox(width: 6),
+            Expanded(child: Text(user?.email ?? "-")),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text("Knjiga", style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
 
-              const SizedBox(width: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  placeholderImage,
-                  width: 80,
-                  height: 120,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Book text details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.book, size: 20),
+                      const SizedBox(width: 6),
+                      Expanded(child: Text(book?.title ?? "-")),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.person_outline, size: 20),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          (book?.author != null)
+                              ? "${book!.author!.firstName} ${book.author!.lastName}"
+                              : "-",
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.category, size: 20),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          (book?.genres?.map((g) => g.name).join(", ")) ?? "-",
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.description, size: 20),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          book?.description ?? "-",
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 150,
+              height: 150,
+              child: Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: (book?.coverImageBase64 != null &&
+                          book!.coverImageBase64!.isNotEmpty)
+                      ? Image.memory(
+                          base64Decode(book.coverImageBase64!),
+                          fit: BoxFit.fill,
+                          width: 150,
+                          height: 150,
+                        )
+                      : Image.asset(
+                          'assets/placeholder.jpg',
+                          fit: BoxFit.fill,
+                          width: 150,
+                          height: 150,
+                        ),
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
 
   return Card(
     elevation: 4,

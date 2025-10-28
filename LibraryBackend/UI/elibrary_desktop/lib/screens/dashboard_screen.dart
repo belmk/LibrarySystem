@@ -5,6 +5,7 @@ import 'package:elibrary_desktop/models/dashboard_models/user_loan_stats_dto.dar
 import 'package:elibrary_desktop/models/dashboard_models/rating_stats_dto.dart';
 import 'package:elibrary_desktop/models/dashboard_models/monthly_revenue_dto.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -19,165 +20,165 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _topX = 5;
   int _lastXMonths = 6;
 
-
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _buildTopCard<BookLoanStatsDto>(
-                  title: 'Top $_topX Borrowed Books',
-                  future: _provider.getTopBorrowedBooks(_topX),
-                  dropdownValue: _topX,
-                  onChanged: (val) => setState(() => _topX = val),
-                  columns: const ['Book', 'Borrows'],
-                  rowBuilder: (e) => [e.title, e.loanCount.toString()],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTopCard<UserLoanStatsDto>(
-                  title: 'Top $_topX Active Users',
-                  future: _provider.getTopActiveUsers(_topX),
-                  dropdownValue: _topX,
-                  onChanged: (val) => setState(() => _topX = val),
-                  columns: const ['User', 'Borrows'],
-                  rowBuilder: (e) => [e.username, e.loanCount.toString()],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTopCard<RatingStatsDto>(
-                  title: 'Top $_topX Rated Books',
-                  future: _provider.getTopRatedBooks(_topX),
-                  dropdownValue: _topX,
-                  onChanged: (val) => setState(() => _topX = val),
-                  columns: const ['Book', 'Rating'],
-                  rowBuilder: (e) => ['${e.name} (${e.totalRatings})', e.avgRating.toStringAsFixed(2)],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTopCard<RatingStatsDto>(
-                  title: 'Top $_topX Rated Users',
-                  future: _provider.getTopRatedUsers(_topX),
-                  dropdownValue: _topX,
-                  onChanged: (val) => setState(() => _topX = val),
-                  columns: const ['User', 'Rating'],
-                  rowBuilder: (e) => ['${e.name} (${e.totalRatings})', e.avgRating.toStringAsFixed(2)],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            children: [
-              _buildChartCard(
-                title: 'Borrows in Last $_lastXMonths Months',
-                future: _provider.getBorrowStats(_lastXMonths),
-                onChanged: (val) => setState(() => _lastXMonths = val),
-              ),
-              _buildChartCard(
-                title: 'Profit in Last $_lastXMonths Months',
-                future: _provider.getProfitStats(_lastXMonths),
-                onChanged: (val) => setState(() => _lastXMonths = val),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget _buildTopCard<T>({
-  required String title,
-  required Future<List<T>> future,
-  required int dropdownValue,
-  required Function(int) onChanged,
-  required List<String> columns,
-  required List<String> Function(T) rowBuilder,
-}) {
-  final verticalController = ScrollController();
-  return SizedBox(
-    height: 300,
-    child: Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
+                  child: _buildTopCard<BookLoanStatsDto>(
+                    title: 'Top $_topX najposuđenijih knjiga',
+                    future: _provider.getTopBorrowedBooks(_topX),
+                    dropdownValue: _topX,
+                    onChanged: (val) => setState(() => _topX = val),
+                    columns: const ['Knjiga', 'Posudbi'],
+                    rowBuilder: (e) => [e.title, e.loanCount.toString()],
                   ),
                 ),
-                DropdownButton<int>(
-                  value: dropdownValue,
-                  items: [3, 5, 10, 15]
-                      .map((e) => DropdownMenuItem(value: e, child: Text('$e')))
-                      .toList(),
-                  onChanged: (val) {
-                    if (val != null) onChanged(val);
-                  },
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildTopCard<UserLoanStatsDto>(
+                    title: 'Top $_topX najaktivnijih korisnika',
+                    future: _provider.getTopActiveUsers(_topX),
+                    dropdownValue: _topX,
+                    onChanged: (val) => setState(() => _topX = val),
+                    columns: const ['Korisnik', 'Posudio knjiga'],
+                    rowBuilder: (e) => [e.username, e.loanCount.toString()],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildTopCard<RatingStatsDto>(
+                    title: 'Top $_topX ocijenjenih knjiga',
+                    future: _provider.getTopRatedBooks(_topX),
+                    dropdownValue: _topX,
+                    onChanged: (val) => setState(() => _topX = val),
+                    columns: const ['Knjiga', 'Ocjena'],
+                    rowBuilder: (e) =>
+                        ['${e.name} (${e.totalRatings})', e.avgRating.toStringAsFixed(2)],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildTopCard<RatingStatsDto>(
+                    title: 'Top $_topX ocijenjenih korisnika',
+                    future: _provider.getTopRatedUsers(_topX),
+                    dropdownValue: _topX,
+                    onChanged: (val) => setState(() => _topX = val),
+                    columns: const ['Korisnik', 'Ocjena'],
+                    rowBuilder: (e) =>
+                        ['${e.name} (${e.totalRatings})', e.avgRating.toStringAsFixed(2)],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: FutureBuilder<List<T>>(
-                future: future,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text("No data found"));
-                  }
-                  return Scrollbar(
-                    controller: verticalController,
-                    thumbVisibility: true,
-                    child: SingleChildScrollView(
-                      controller: verticalController,
-                      scrollDirection: Axis.vertical,
-                      child: SizedBox(
-                        width: double.infinity, 
-                        child: DataTable(
-                          columnSpacing: 12, 
-                          columns: columns.map((col) => DataColumn(label: Text(col))).toList(),
-                          rows: snapshot.data!
-                              .map((e) => DataRow(
-                                    cells: rowBuilder(e)
-                                        .map((val) => DataCell(Text(val, softWrap: true)))
-                                        .toList(),
-                                  ))
-                              .toList(),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+            const SizedBox(height: 32),
+            Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: [
+                _buildChartCard(
+                  title: 'Posudbi u zadnjih $_lastXMonths mjeseci',
+                  future: _provider.getBorrowStats(_lastXMonths),
+                  onChanged: (val) => setState(() => _lastXMonths = val),
+                ),
+                _buildChartCard(
+                  title: 'Zarade u zadnjih $_lastXMonths mjeseci',
+                  future: _provider.getProfitStats(_lastXMonths),
+                  onChanged: (val) => setState(() => _lastXMonths = val),
+                ),
+              ],
             ),
           ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
+  Widget _buildTopCard<T>({
+    required String title,
+    required Future<List<T>> future,
+    required int dropdownValue,
+    required Function(int) onChanged,
+    required List<String> columns,
+    required List<String> Function(T) rowBuilder,
+  }) {
+    final verticalController = ScrollController();
+    return SizedBox(
+      height: 300,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  DropdownButton<int>(
+                    value: dropdownValue,
+                    items: [3, 5, 10, 15]
+                        .map((e) => DropdownMenuItem(value: e, child: Text('$e')))
+                        .toList(),
+                    onChanged: (val) {
+                      if (val != null) onChanged(val);
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: FutureBuilder<List<T>>(
+                  future: future,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text("No data found"));
+                    }
+                    return Scrollbar(
+                      controller: verticalController,
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
+                        controller: verticalController,
+                        scrollDirection: Axis.vertical,
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: DataTable(
+                            columnSpacing: 12,
+                            columns: columns.map((col) => DataColumn(label: Text(col))).toList(),
+                            rows: snapshot.data!
+                                .map((e) => DataRow(
+                                      cells: rowBuilder(e)
+                                          .map((val) => DataCell(Text(val, softWrap: true)))
+                                          .toList(),
+                                    ))
+                                .toList(),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildChartCard({
     required String title,
@@ -195,9 +196,10 @@ Widget _buildTopCard<T>({
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(title,
-                      style:
-                          const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   DropdownButton<int>(
                     value: _lastXMonths,
                     items: [3, 6, 12]
@@ -217,14 +219,39 @@ Widget _buildTopCard<T>({
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    if (!snapshot.hasData) {
                       return const Center(child: Text("No data"));
                     }
 
-                    final data = snapshot.data!;
-                    final spots = data.asMap().entries.map((entry) {
-                      return FlSpot(entry.key.toDouble(), entry.value.count.toDouble());
-                    }).toList();
+                    final now = DateTime.now();
+                    final keyFormatter = DateFormat('MM/yyyy');
+                    final labelFormatter = DateFormat('MMM');
+
+                    // Build map from backend
+                    final Map<String, int> dataMap = {
+                      for (var e in snapshot.data!) e.month: e.count
+                    };
+
+                    // Fill missing months
+                    final filledData = List.generate(_lastXMonths, (i) {
+                      final date = DateTime(now.year, now.month - (_lastXMonths - 1 - i));
+                      final monthKey = keyFormatter.format(date); // "MM/yyyy" like backend
+                      final displayLabel = labelFormatter.format(date); // Short month label
+
+                      return MonthlyRevenueDto(
+                        month: displayLabel,
+                        count: dataMap[monthKey] ?? 0,
+                      );
+                    });
+
+                    final spots = filledData
+                        .asMap()
+                        .entries
+                        .map((entry) => FlSpot(
+                              entry.key.toDouble(),
+                              entry.value.count.toDouble(),
+                            ))
+                        .toList();
 
                     return LineChart(
                       LineChartData(
@@ -238,7 +265,7 @@ Widget _buildTopCard<T>({
                               show: true,
                               color: Colors.blue.withOpacity(0.2),
                             ),
-                          )
+                          ),
                         ],
                         titlesData: FlTitlesData(
                           bottomTitles: AxisTitles(
@@ -246,8 +273,10 @@ Widget _buildTopCard<T>({
                               showTitles: true,
                               interval: 1,
                               getTitlesWidget: (value, _) {
-                                if (value < 0 || value >= data.length) return const Text('');
-                                return Text(data[value.toInt()].month);
+                                if (value < 0 || value >= filledData.length) {
+                                  return const Text('');
+                                }
+                                return Text(filledData[value.toInt()].month);
                               },
                             ),
                           ),

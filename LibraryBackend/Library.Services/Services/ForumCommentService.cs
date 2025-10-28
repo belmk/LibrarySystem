@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Library.Models.DTOs.Activities;
 using Library.Models.DTOs.ForumComments;
+using Library.Models.DTOs.Notifications;
 using Library.Models.Entities;
 using Library.Models.SearchObjects;
 using Library.Services.Database;
@@ -18,14 +19,17 @@ namespace Library.Services.Services
     public class ForumCommentService : BaseCRUDService<ForumCommentDto, ForumComment, ForumCommentSearchObject, ForumCommentInsertDto, ForumCommentUpdateDto>, IForumCommentService
     {
         private readonly IActivityService _activityService;
+        private readonly INotificationService _notificationService;
 
         public ForumCommentService(
             LibraryDbContext context,
             IMapper mapper,
-            IActivityService activityService)
+            IActivityService activityService,
+            INotificationService notificationService)
             : base(context, mapper)
         {
             _activityService = activityService;
+            _notificationService = notificationService;
         }
 
         public override async Task BeforeInsert(ForumComment entity, ForumCommentInsertDto insert)
@@ -36,10 +40,18 @@ namespace Library.Services.Services
             {
                 UserId = entity.UserId,
                 Description = $"Napisao/la komentar: \"{entity.Comment}\"",
-                ActivityDate = DateTime.UtcNow,
+                ActivityDate = DateTime.Now,
             };
 
             await _activityService.Insert(activity);
+
+            var notification = new NotificationInsertDto
+            {
+                UserId = entity.ForumThread.UserId,
+                Title = "Novi komentar",
+                Message = $"Primili ste novi komentar od korisnika {entity.User.Username} na vašoj objavi {entity.ForumThread.Title}",
+                ReceivedDate = DateTime.Now,
+            }
         }
         public override IQueryable<ForumComment> AddFilter(IQueryable<ForumComment> query, ForumCommentSearchObject? search = null)
         {
