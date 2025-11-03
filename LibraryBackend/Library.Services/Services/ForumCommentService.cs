@@ -36,6 +36,10 @@ namespace Library.Services.Services
         {
             await base.BeforeInsert(entity, insert);
 
+            entity.ForumThread = await _context.ForumThreads
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.Id == entity.ForumThreadId);
+
             var activity = new ActivityInsertDto
             {
                 UserId = entity.UserId,
@@ -45,14 +49,20 @@ namespace Library.Services.Services
 
             await _activityService.Insert(activity);
 
-            var notification = new NotificationInsertDto
+            if (entity.ForumThread?.UserId != null && entity.ForumThread.UserId != entity.UserId)
             {
-                UserId = entity.ForumThread.UserId,
-                Title = "Novi komentar",
-                Message = $"Primili ste novi komentar od korisnika {entity.User.Username} na vašoj objavi {entity.ForumThread.Title}",
-                ReceivedDate = DateTime.Now,
+                var notification = new NotificationInsertDto
+                {
+                    UserId = entity.ForumThread.UserId,
+                    Title = "Novi komentar",
+                    Message = $"Primili ste novi komentar od korisnika {entity.User?.Username ?? "nepoznat"} na vašoj objavi \"{entity.ForumThread.Title}\"",
+                    ReceivedDate = DateTime.Now,
+                };
+
+                await _notificationService.Insert(notification);
             }
         }
+
         public override IQueryable<ForumComment> AddFilter(IQueryable<ForumComment> query, ForumCommentSearchObject? search = null)
         {
             var filteredQuery = base.AddFilter(query, search);

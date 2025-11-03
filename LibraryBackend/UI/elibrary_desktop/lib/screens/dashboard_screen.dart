@@ -4,6 +4,10 @@ import 'package:elibrary_desktop/models/dashboard_models/book_loan_stats_dto.dar
 import 'package:elibrary_desktop/models/dashboard_models/user_loan_stats_dto.dart';
 import 'package:elibrary_desktop/models/dashboard_models/rating_stats_dto.dart';
 import 'package:elibrary_desktop/models/dashboard_models/monthly_revenue_dto.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
@@ -93,11 +97,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ],
             ),
+            Center(
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.picture_as_pdf),
+              label: const Text('Generiši izvještaj'),
+              onPressed: _generateReport,
+            ),
+          ),
           ],
         ),
       ),
     );
   }
+
+Future<void> _generateReport() async {
+  final borrowStats = await _provider.getBorrowStats(_lastXMonths);
+  final profitStats = await _provider.getProfitStats(_lastXMonths);
+
+  final pdf = pw.Document();
+
+  pdf.addPage(
+    pw.Page(
+      build: (context) => pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text('Izvjestaj za zadnjih $_lastXMonths mjeseci',
+              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 16),
+          pw.Text('Broj posudbi po mjesecima:'),
+          pw.Table.fromTextArray(
+            headers: ['Mjesec', 'Posudbi'],
+            data: borrowStats.map((e) => [e.month, e.count.toString()]).toList(),
+          ),
+          pw.SizedBox(height: 20),
+          pw.Text('Zarade po mjesecima:'),
+          pw.Table.fromTextArray(
+            headers: ['Mjesec', 'Zarada'],
+            data: profitStats.map((e) => [e.month, e.count.toString()]).toList(),
+          ),
+        ],
+      ),
+    ),
+  );
+
+  final pdfBytes = await pdf.save();
+
+  await Printing.sharePdf(
+    bytes: pdfBytes,
+    filename: 'Izvjestaj_${DateTime.now().year}_${DateTime.now().month}.pdf',
+  );
+}
+
+
 
   Widget _buildTopCard<T>({
     required String title,
@@ -227,16 +278,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     final keyFormatter = DateFormat('MM/yyyy');
                     final labelFormatter = DateFormat('MMM');
 
-                    // Build map from backend
                     final Map<String, int> dataMap = {
                       for (var e in snapshot.data!) e.month: e.count
                     };
 
-                    // Fill missing months
                     final filledData = List.generate(_lastXMonths, (i) {
                       final date = DateTime(now.year, now.month - (_lastXMonths - 1 - i));
-                      final monthKey = keyFormatter.format(date); // "MM/yyyy" like backend
-                      final displayLabel = labelFormatter.format(date); // Short month label
+                      final monthKey = keyFormatter.format(date);
+                      final displayLabel = labelFormatter.format(date); 
 
                       return MonthlyRevenueDto(
                         month: displayLabel,

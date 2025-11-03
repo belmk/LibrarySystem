@@ -82,28 +82,30 @@ namespace Library.Services.Services
         {
             var fromDate = DateTime.Now.AddMonths(-months + 1);
 
-            var rawData = await _context.Subscriptions
-                .Where(s => s.StartDate >= fromDate)
-                .GroupBy(s => new { s.StartDate.Year, s.StartDate.Month })
+            var rawData = await _context.BookLoans
+                .Where(b => b.LoanDate >= fromDate && b.LoanDate != null)
+                .GroupBy(b => new { b.LoanDate.Value.Year, b.LoanDate.Value.Month })
                 .Select(g => new
                 {
                     g.Key.Year,
                     g.Key.Month,
-                    TotalRevenue = g.Sum(s => s.Price)
+                    BorrowCount = g.Count()
                 })
                 .ToListAsync();
 
             var projected = rawData
                 .Select(g => new MonthlyRevenueDto
                 {
-                    Month = $"{g.Month:D2}/{g.Year}", 
-                    Count = (int)g.TotalRevenue
+                    Month = $"{g.Month:D2}/{g.Year}",
+                    Count = g.BorrowCount
                 })
                 .OrderBy(g => g.Month)
                 .ToList();
 
             return projected;
         }
+
+
 
 
 
