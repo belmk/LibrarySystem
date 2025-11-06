@@ -1,3 +1,6 @@
+import 'package:elibrary_mobile/providers/book_provider.dart';
+import 'package:elibrary_mobile/providers/genre_provider.dart';
+import 'package:elibrary_mobile/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
@@ -7,8 +10,9 @@ import 'screens/login_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  print('Loading .env ...');
   await dotenv.load(fileName: ".env");
+  print('Loading finished!');
 
   final apiUrl = dotenv.env['API_URL'];
   if (apiUrl != null && apiUrl.isNotEmpty) {
@@ -30,6 +34,9 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => BookProvider()),
+        ChangeNotifierProvider(create: (_) => GenreProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

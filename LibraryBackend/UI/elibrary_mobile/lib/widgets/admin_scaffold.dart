@@ -17,16 +17,15 @@ class AdminScaffold extends StatelessWidget {
   }) : super(key: key);
 
   static const List<Map<String, dynamic>> _menuItems = [
-    {'icon': Icons.people, 'label': 'Korisnici'},
-    {'icon': Icons.inventory, 'label': 'Skladište'},
-    {'icon': Icons.swap_horiz, 'label': 'Zamjena knjiga'},
-    {'icon': Icons.menu_book, 'label': 'Korisničke knjige'},
-    {'icon': Icons.report_problem, 'label': 'Žalbe'},
-    {'icon': Icons.assignment, 'label': 'Evidencija posudbi'},
-    {'icon': Icons.rate_review, 'label': 'Recenzije'},
-    {'icon': Icons.forum, 'label': 'Forum'},
-    {'icon': Icons.dashboard, 'label': 'Dashboard'},
-  ];
+  {'icon': Icons.menu_book_rounded, 'label': 'Knjige'},              
+  {'icon': Icons.library_books_rounded, 'label': 'Korisničke knjige'},           
+  {'icon': Icons.group_rounded, 'label': 'Korisnici'},     
+  {'icon': Icons.bookmark_rounded, 'label': 'Moje knjige'},   
+  {'icon': Icons.card_membership_rounded, 'label': 'Članarina'},         
+  {'icon': Icons.notifications_rounded, 'label': 'Obavijesti'}, 
+  {'icon': Icons.person_rounded, 'label': 'Profil'},          
+];
+
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -92,7 +91,7 @@ class AdminScaffold extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        "eLibrary Admin",
+                        "Dobrodošli", //TODO: Display logged in user name and email
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
