@@ -2,8 +2,8 @@ import 'package:elibrary_mobile/screens/admin_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/user_provider.dart';
 import '../utils/util.dart';
-//import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -24,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _loading = true);
-
     final authProvider = context.read<AuthProvider>();
 
     try {
@@ -37,9 +36,16 @@ class _LoginScreenState extends State<LoginScreen> {
         Authorization.username = _usernameController.text.trim();
         Authorization.password = _passwordController.text.trim();
 
-        Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const AdminHomeScreen()),
-        );
+        final userProvider = UserProvider();
+        final currentUser = await userProvider.getMe();
+
+        authProvider.setCurrentUser(currentUser);
+
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const AdminHomeScreen()),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -163,7 +169,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                 ),
-
                 const SizedBox(height: 30),
 
                 Text(

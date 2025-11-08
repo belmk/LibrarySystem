@@ -2,27 +2,22 @@ import 'dart:convert';
 import 'package:elibrary_mobile/models/book.dart';
 import 'package:elibrary_mobile/models/genre.dart';
 import 'package:elibrary_mobile/models/search_result.dart';
-import 'package:elibrary_mobile/providers/auth_provider.dart';
 import 'package:elibrary_mobile/providers/book_provider.dart';
 import 'package:elibrary_mobile/providers/genre_provider.dart';
-import 'package:elibrary_mobile/providers/book_loan_provider.dart';
 import 'package:elibrary_mobile/screens/book_details_screen.dart';
-import 'package:elibrary_mobile/screens/book_review_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class BookListScreen extends StatefulWidget {
-  const BookListScreen({Key? key}) : super(key: key);
+class UserBookListScreen extends StatefulWidget {
+  const UserBookListScreen({Key? key}) : super(key: key);
 
   @override
-  State<BookListScreen> createState() => _BookListScreenState();
+  State<UserBookListScreen> createState() => _UserBookListScreenState();
 }
 
-class _BookListScreenState extends State<BookListScreen> {
+class _UserBookListScreenState extends State<UserBookListScreen> {
   late BookProvider _bookProvider;
   late GenreProvider _genreProvider;
-  late BookLoanProvider _bookLoanProvider;
-  late AuthProvider _authProvider;
 
   SearchResult<Book>? _bookResult;
   List<Genre> _genres = [];
@@ -32,6 +27,7 @@ class _BookListScreenState extends State<BookListScreen> {
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _authorController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   Genre? _selectedGenre;
 
   int _currentPage = 1;
@@ -40,19 +36,14 @@ class _BookListScreenState extends State<BookListScreen> {
 
   int get _totalPages => _totalCount > 0 ? (_totalCount / _pageSize).ceil() : 1;
 
-  Set<int> _borrowedBookIds = {};
-
   @override
   void initState() {
     super.initState();
     _bookProvider = context.read<BookProvider>();
     _genreProvider = context.read<GenreProvider>();
-    _bookLoanProvider = context.read<BookLoanProvider>();
-    _authProvider = context.read<AuthProvider>();
 
     _loadGenres();
     _loadBooks();
-    _loadUserLoans(); 
   }
 
   Future<void> _loadGenres() async {
@@ -70,27 +61,6 @@ class _BookListScreenState extends State<BookListScreen> {
     }
   }
 
-  Future<void> _loadUserLoans() async {
-    try {
-      final userId = _authProvider.currentUser?.id;
-      if (userId == null) return;
-
-      final result = await _bookLoanProvider.get(filter: {
-        "userId": userId,
-      });
-
-      final loans = result.result ?? [];
-      setState(() {
-        _borrowedBookIds = loans
-            .where((loan) => loan.book?.id != null)
-            .map((loan) => loan.book!.id!)
-            .toSet();
-      });
-    } catch (e) {
-      debugPrint("Failed to load user loans: $e");
-    }
-  }
-
   Future<void> _loadBooks({bool useFilters = false}) async {
     setState(() => _isLoading = true);
 
@@ -98,11 +68,12 @@ class _BookListScreenState extends State<BookListScreen> {
       final filter = {
         "title": _titleController.text.trim(),
         "author": _authorController.text.trim(),
+        "username": _usernameController.text.trim(),
         "genreId": _selectedGenre?.id,
-        "isUserBook": false,
+        "isUserBook": true,
         "page": _currentPage - 1,
         "pageSize": _pageSize,
-      };
+      }; //TODO: dont use the boolean on filters and make some of them apply onload (isuserbook)
 
       var result = await _bookProvider.get(filter: useFilters ? filter : null);
       setState(() {
@@ -121,6 +92,7 @@ class _BookListScreenState extends State<BookListScreen> {
   void _resetFilters() {
     _titleController.clear();
     _authorController.clear();
+    _usernameController.clear();
     setState(() {
       _selectedGenre = null;
       _currentPage = 1;
@@ -140,8 +112,6 @@ class _BookListScreenState extends State<BookListScreen> {
     } else {
       imageProvider = const AssetImage('assets/placeholder.jpg');
     }
-
-    final hasBorrowed = book.id != null && _borrowedBookIds.contains(book.id);
 
     return Card(
       elevation: 3,
@@ -199,9 +169,9 @@ class _BookListScreenState extends State<BookListScreen> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.inventory, size: 16, color: Colors.grey),
+                      const Icon(Icons.account_circle, size: 16, color: Colors.grey),
                       const SizedBox(width: 4),
-                      Text('Dostupno ${book.availableNumber ?? '-'}'),
+                      Text('Korisnik: ${book.user?.username ?? "-"}'),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -227,44 +197,24 @@ class _BookListScreenState extends State<BookListScreen> {
                           label: const Text("Detalji"),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 8),
-                          ),
-                        ),
-                      ),
-                      if (hasBorrowed) ...[
-                        const SizedBox(width: 8),
-                        Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.white,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                              ),
-                              builder: (context) => Padding(
-                                padding: EdgeInsets.only(
-                                  bottom: MediaQuery.of(context).viewInsets.bottom,
-                                ),
-                                child: SizedBox(
-                                  height: MediaQuery.of(context).size.height * 0.7,
-                                  child: BookReviewScreen(book: book),
-                                ),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.rate_review),
-                          label: const Text("Recenzija"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
                             padding: const EdgeInsets.symmetric(vertical: 8),
                           ),
                         ),
                       ),
-
-                      ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            // Trigger swap action
+                          },
+                          icon: const Icon(Icons.swap_horiz),
+                          label: const Text("Pokreni zamjenu"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -294,6 +244,15 @@ class _BookListScreenState extends State<BookListScreen> {
             controller: _authorController,
             decoration: const InputDecoration(
               labelText: 'Pisac',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _usernameController,
+            decoration: const InputDecoration(
+              labelText: 'Korisničko ime',
               border: OutlineInputBorder(),
               isDense: true,
             ),

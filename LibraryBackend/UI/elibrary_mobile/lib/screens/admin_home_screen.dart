@@ -1,4 +1,5 @@
 import 'package:elibrary_mobile/screens/book_list_screen.dart';
+import 'package:elibrary_mobile/screens/user_book_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:elibrary_mobile/widgets/admin_scaffold.dart';
 
@@ -27,7 +28,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
       case 1: //Kor. knjige
         currentTitle = 'Korisničke knjige';
-        currentScreen = const Center(child: Text("Nepoznata sekcija"));
+        currentScreen = const UserBookListScreen();
         break;
 
       case 2: //Korisnici

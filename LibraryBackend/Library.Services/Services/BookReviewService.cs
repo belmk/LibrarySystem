@@ -28,10 +28,15 @@ namespace Library.Services.Services
         {
             await base.BeforeInsert(entity, insert);
 
+            if (entity.Book == null)
+            {
+                entity.Book = await _context.Set<Book>().FirstOrDefaultAsync(b => b.Id == entity.BookId);
+            }
+
             var activity = new ActivityInsertDto
             {
                 UserId = entity.UserId,
-                Description = $"Ostavio/la recenziju {entity.Rating}/5 na knjigu {entity.Book.Title}",
+                Description = $"Ostavio/la recenziju {entity.Rating}/5 na knjigu {entity.Book?.Title}",
                 ActivityDate = DateTime.UtcNow,
             };
 
@@ -69,6 +74,11 @@ namespace Library.Services.Services
             if (search?.IsDenied != null)
             {
                 filteredQuery = filteredQuery.Where(x => x.IsDenied == search.IsDenied);
+            }
+
+            if (search?.BookId != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.BookId.Equals(search.BookId));
             }
 
             return filteredQuery;

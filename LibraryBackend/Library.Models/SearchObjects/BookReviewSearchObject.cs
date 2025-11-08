@@ -10,6 +10,7 @@ namespace Library.Models.SearchObjects
     public class BookReviewSearchObject : BaseSearchObject
     {
         public string? Username { get; set; }
+        public int? BookId { get; set; }
         public string? Email {  get; set; }
         public DateTime? ReviewDate { get; set; }
         public bool? IsApproved { get; set; }

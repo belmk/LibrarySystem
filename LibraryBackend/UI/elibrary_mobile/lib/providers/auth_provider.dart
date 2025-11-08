@@ -2,11 +2,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../models/user.dart';
+import '../providers/user_provider.dart';
+import '../utils/util.dart';
 
 class AuthProvider with ChangeNotifier {
+  User? _currentUser;
+  User? get currentUser => _currentUser;
 
+  bool get isLoggedIn => _currentUser != null;
 
- Future<bool> login(String username, String password) async {
+  Future<bool> login(String username, String password) async {
     final uri = Uri.parse("${dotenv.env['API_URL']}Auth/login");
 
     try {
@@ -20,8 +26,13 @@ class AuthProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        Authorization.username = username;
+        Authorization.password = password;
 
+        final userProvider = UserProvider();
+        final user = await userProvider.getMe();
+
+        _currentUser = user;
         notifyListeners();
 
         return true;
@@ -32,7 +43,21 @@ class AuthProvider with ChangeNotifier {
         throw Exception(error['message'] ?? "Login failed.");
       }
     } catch (e) {
-      throw Exception("${e.toString()}");
+      throw Exception("Greška pri loginu: ${e.toString()}");
     }
+  }
+
+  User? getUser() => _currentUser;
+
+  void setCurrentUser(User user) {
+    _currentUser = user;
+    notifyListeners();
+  }
+
+  void logout() {
+    _currentUser = null;
+    Authorization.username = null;
+    Authorization.password = null;
+    notifyListeners();
   }
 }

@@ -52,6 +52,11 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.UserId.Equals(search.UserId));
             }
 
+            if (search?.BookId != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.BookId.Equals(search.BookId));
+            }
+
 
             return filteredQuery;
         }

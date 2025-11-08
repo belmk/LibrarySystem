@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../utils/util.dart';
 import '../screens/login_screen.dart';
 
@@ -17,15 +19,14 @@ class AdminScaffold extends StatelessWidget {
   }) : super(key: key);
 
   static const List<Map<String, dynamic>> _menuItems = [
-  {'icon': Icons.menu_book_rounded, 'label': 'Knjige'},              
-  {'icon': Icons.library_books_rounded, 'label': 'Korisničke knjige'},           
-  {'icon': Icons.group_rounded, 'label': 'Korisnici'},     
-  {'icon': Icons.bookmark_rounded, 'label': 'Moje knjige'},   
-  {'icon': Icons.card_membership_rounded, 'label': 'Članarina'},         
-  {'icon': Icons.notifications_rounded, 'label': 'Obavijesti'}, 
-  {'icon': Icons.person_rounded, 'label': 'Profil'},          
-];
-
+    {'icon': Icons.menu_book_rounded, 'label': 'Knjige'},
+    {'icon': Icons.library_books_rounded, 'label': 'Korisničke knjige'},
+    {'icon': Icons.group_rounded, 'label': 'Korisnici'},
+    {'icon': Icons.bookmark_rounded, 'label': 'Moje knjige'},
+    {'icon': Icons.card_membership_rounded, 'label': 'Članarina'},
+    {'icon': Icons.notifications_rounded, 'label': 'Obavijesti'},
+    {'icon': Icons.person_rounded, 'label': 'Profil'},
+  ];
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -43,6 +44,9 @@ class AdminScaffold extends StatelessWidget {
               Navigator.pop(context);
               Authorization.username = null;
               Authorization.password = null;
+
+              context.read<AuthProvider>().logout();
+
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
                 (route) => false,
@@ -57,6 +61,9 @@ class AdminScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>(); 
+    final user = auth.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
@@ -84,20 +91,45 @@ class AdminScaffold extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primaryContainer,
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.admin_panel_settings,
-                        size: 50,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer),
+                    Icon(
+                      Icons.library_books,
+                      size: 50,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        "Dobrodošli", //TODO: Display logged in user name and email
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimaryContainer,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Dobrodošli, ${user?.username ?? 'Korisnik'}",
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            user?.email ?? '',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer
+                                      .withOpacity(0.8),
+                                ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
