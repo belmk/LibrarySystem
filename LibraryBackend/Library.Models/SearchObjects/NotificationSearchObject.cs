@@ -9,6 +9,7 @@ namespace Library.Models.SearchObjects
 {
     public class NotificationSearchObject : BaseSearchObject
     {
+        public int? UserId { get; set; }
         public string? Title { get; set; }
         public string? Message { get; set; }
     }

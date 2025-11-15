@@ -7,7 +7,9 @@ import 'package:elibrary_mobile/providers/book_provider.dart';
 import 'package:elibrary_mobile/providers/genre_provider.dart';
 import 'package:elibrary_mobile/providers/book_loan_provider.dart';
 import 'package:elibrary_mobile/screens/book_details_screen.dart';
+import 'package:elibrary_mobile/screens/book_review_edit_screen.dart';
 import 'package:elibrary_mobile/screens/book_review_screen.dart';
+import 'package:elibrary_mobile/providers/book_review_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,6 +25,7 @@ class _BookListScreenState extends State<BookListScreen> {
   late GenreProvider _genreProvider;
   late BookLoanProvider _bookLoanProvider;
   late AuthProvider _authProvider;
+  late BookReviewProvider _bookReviewProvider;
 
   SearchResult<Book>? _bookResult;
   List<Genre> _genres = [];
@@ -49,9 +52,11 @@ class _BookListScreenState extends State<BookListScreen> {
     _genreProvider = context.read<GenreProvider>();
     _bookLoanProvider = context.read<BookLoanProvider>();
     _authProvider = context.read<AuthProvider>();
+    _bookReviewProvider = context.read<BookReviewProvider>();
+
 
     _loadGenres();
-    _loadBooks();
+    _loadBooks(); 
     _loadUserLoans(); 
   }
 
@@ -91,7 +96,7 @@ class _BookListScreenState extends State<BookListScreen> {
     }
   }
 
-  Future<void> _loadBooks({bool useFilters = false}) async {
+  Future<void> _loadBooks({bool useFilters = true}) async {
     setState(() => _isLoading = true);
 
     try {
@@ -104,7 +109,7 @@ class _BookListScreenState extends State<BookListScreen> {
         "pageSize": _pageSize,
       };
 
-      var result = await _bookProvider.get(filter: useFilters ? filter : null);
+      var result = await _bookProvider.get(filter: filter);
       setState(() {
         _bookResult = result;
         _totalCount = result.count ?? 0;
@@ -235,35 +240,82 @@ class _BookListScreenState extends State<BookListScreen> {
                       if (hasBorrowed) ...[
                         const SizedBox(width: 8),
                         Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.white,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                              ),
-                              builder: (context) => Padding(
-                                padding: EdgeInsets.only(
-                                  bottom: MediaQuery.of(context).viewInsets.bottom,
-                                ),
-                                child: SizedBox(
-                                  height: MediaQuery.of(context).size.height * 0.7,
-                                  child: BookReviewScreen(book: book),
-                                ),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.rate_review),
-                          label: const Text("Recenzija"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              final authProvider = context.read<AuthProvider>();
+                              final bookReviewProvider = context.read<BookReviewProvider>();
+
+                              final userId = authProvider.currentUser?.id;
+                              if (userId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Morate biti prijavljeni da ostavite recenziju.")),
+                                );
+                                return;
+                              }
+
+                              try {
+                                final reviewResult = await bookReviewProvider.get(filter: {
+                                  "bookId": book.id,
+                                  "userId": userId,
+                                });
+
+                                if (reviewResult.result.isNotEmpty) {
+                                  // user left a review
+                                  final existingReview = reviewResult.result.first;
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.white,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                    ),
+                                    builder: (context) => Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                                      ),
+                                      child: SizedBox(
+                                        height: MediaQuery.of(context).size.height * 0.75,
+                                        child: ExistingReviewScreen(
+                                          review: existingReview,
+                                          book: book,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  //user didn't review 
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.white,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                    ),
+                                    builder: (context) => Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                                      ),
+                                      child: SizedBox(
+                                        height: MediaQuery.of(context).size.height * 0.75,
+                                        child: BookReviewScreen(book: book),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("Greška pri učitavanju recenzije: $e")),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.rate_review),
+                            label: const Text("Recenzija"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                            ),
                           ),
                         ),
-                      ),
-
                       ],
                     ],
                   ),
@@ -323,7 +375,12 @@ class _BookListScreenState extends State<BookListScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               IconButton(
-                onPressed: () => _loadBooks(useFilters: true),
+                onPressed: () {
+                setState(() {
+                  _currentPage = 1; 
+                });
+                _loadBooks(useFilters: true);
+              },
                 icon: const Icon(Icons.search, color: Colors.blueAccent),
                 tooltip: 'Pretraži',
               ),
@@ -349,7 +406,7 @@ class _BookListScreenState extends State<BookListScreen> {
             onPressed: _currentPage > 1
                 ? () {
                     setState(() => _currentPage--);
-                    _loadBooks(useFilters: true);
+                    _loadBooks();
                   }
                 : null,
             icon: const Icon(Icons.arrow_back),
@@ -359,7 +416,7 @@ class _BookListScreenState extends State<BookListScreen> {
             onPressed: _currentPage < _totalPages
                 ? () {
                     setState(() => _currentPage++);
-                    _loadBooks(useFilters: true);
+                    _loadBooks();
                   }
                 : null,
             icon: const Icon(Icons.arrow_forward),

@@ -2,32 +2,36 @@ import 'dart:convert';
 import 'package:elibrary_mobile/models/book.dart';
 import 'package:elibrary_mobile/models/genre.dart';
 import 'package:elibrary_mobile/models/search_result.dart';
+import 'package:elibrary_mobile/providers/auth_provider.dart';
+import 'package:elibrary_mobile/providers/author_provider.dart';
 import 'package:elibrary_mobile/providers/book_provider.dart';
 import 'package:elibrary_mobile/providers/genre_provider.dart';
+import 'package:elibrary_mobile/screens/book_create_screen.dart';
 import 'package:elibrary_mobile/screens/book_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class UserBookListScreen extends StatefulWidget {
-  const UserBookListScreen({Key? key}) : super(key: key);
+class UserBooksScreen extends StatefulWidget {
+  const UserBooksScreen({Key? key}) : super(key: key);
 
   @override
-  State<UserBookListScreen> createState() => _UserBookListScreenState();
+  State<UserBooksScreen> createState() => _UserBooksScreenState();
 }
 
-class _UserBookListScreenState extends State<UserBookListScreen> {
+class _UserBooksScreenState extends State<UserBooksScreen> {
   late BookProvider _bookProvider;
   late GenreProvider _genreProvider;
+  late AuthProvider _authProvider;
 
   SearchResult<Book>? _bookResult;
   List<Genre> _genres = [];
+
   bool _isLoading = true;
   bool _isGenreLoading = true;
   String? _errorMessage;
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _authorController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
   Genre? _selectedGenre;
 
   int _currentPage = 1;
@@ -41,14 +45,15 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
     super.initState();
     _bookProvider = context.read<BookProvider>();
     _genreProvider = context.read<GenreProvider>();
+    _authProvider = context.read<AuthProvider>();
 
     _loadGenres();
-    _loadBooks();
+    _loadUserBooks();
   }
 
   Future<void> _loadGenres() async {
     try {
-      var result = await _genreProvider.get();
+      final result = await _genreProvider.get();
       setState(() {
         _genres = result.result;
         _isGenreLoading = false;
@@ -61,21 +66,25 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
     }
   }
 
-  Future<void> _loadBooks({bool useFilters = true}) async {
+  Future<void> _loadUserBooks({bool useFilters = true}) async {
     setState(() => _isLoading = true);
 
     try {
+      final userId = _authProvider.currentUser?.id;
+      if (userId == null) return;
+
       final filter = {
         "title": _titleController.text.trim(),
         "author": _authorController.text.trim(),
-        "username": _usernameController.text.trim(),
         "genreId": _selectedGenre?.id,
         "isUserBook": true,
+        "userId": userId,
         "page": _currentPage - 1,
         "pageSize": _pageSize,
       };
 
-      var result = await _bookProvider.get(filter: filter);
+      final result = await _bookProvider.get(filter: filter);
+
       setState(() {
         _bookResult = result;
         _totalCount = result.count ?? 0;
@@ -92,12 +101,11 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
   void _resetFilters() {
     _titleController.clear();
     _authorController.clear();
-    _usernameController.clear();
     setState(() {
       _selectedGenre = null;
-      _currentPage = 1; 
+      _currentPage = 1;
     });
-    _loadBooks();
+    _loadUserBooks();
   }
 
   Widget _buildBookCard(Book book) {
@@ -118,7 +126,7 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -166,14 +174,6 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
                       Text('${book.pageNumber ?? '-'} stranica'),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.account_circle, size: 16, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text('Korisnik: ${book.user?.username ?? "-"}'),
-                    ],
-                  ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -201,25 +201,11 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            // Trigger swap action
-                          },
-                          icon: const Icon(Icons.swap_horiz),
-                          label: const Text("Pokreni zamjenu"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ],
               ),
-            ),
+            )
           ],
         ),
       ),
@@ -249,15 +235,6 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          TextField(
-            controller: _usernameController,
-            decoration: const InputDecoration(
-              labelText: 'Korisničko ime',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
-          ),
-          const SizedBox(height: 8),
           _isGenreLoading
               ? const Center(child: CircularProgressIndicator())
               : DropdownButtonFormField<Genre>(
@@ -267,12 +244,12 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
                     isDense: true,
                   ),
                   value: _selectedGenre,
-                  items: _genres.map((g) {
-                    return DropdownMenuItem(
-                      value: g,
-                      child: Text(g.name ?? ""),
-                    );
-                  }).toList(),
+                  items: _genres
+                      .map((g) => DropdownMenuItem(
+                            value: g,
+                            child: Text(g.name ?? ""),
+                          ))
+                      .toList(),
                   onChanged: (val) {
                     setState(() => _selectedGenre = val);
                   },
@@ -283,18 +260,14 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
             children: [
               IconButton(
                 onPressed: () {
-                  setState(() {
-                    _currentPage = 1; // 🔹 Reset page number on search
-                  });
-                  _loadBooks(useFilters: true);
+                  setState(() => _currentPage = 1);
+                  _loadUserBooks();
                 },
                 icon: const Icon(Icons.search, color: Colors.blueAccent),
-                tooltip: 'Pretraži',
               ),
               IconButton(
                 onPressed: _resetFilters,
                 icon: const Icon(Icons.refresh, color: Colors.grey),
-                tooltip: 'Resetuj filtere',
               ),
             ],
           ),
@@ -313,7 +286,7 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
             onPressed: _currentPage > 1
                 ? () {
                     setState(() => _currentPage--);
-                    _loadBooks();
+                    _loadUserBooks();
                   }
                 : null,
             icon: const Icon(Icons.arrow_back),
@@ -323,7 +296,7 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
             onPressed: _currentPage < _totalPages
                 ? () {
                     setState(() => _currentPage++);
-                    _loadBooks();
+                    _loadUserBooks();
                   }
                 : null,
             icon: const Icon(Icons.arrow_forward),
@@ -347,25 +320,44 @@ class _UserBookListScreenState extends State<UserBookListScreen> {
       );
     }
 
-    var books = _bookResult?.result ?? [];
+    final books = _bookResult?.result ?? [];
 
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _loadBooks,
-        child: ListView(
-          children: [
-            _buildFilters(),
-            if (books.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(20),
-                child: Center(child: Text("Nema pronađenih knjiga")),
-              )
-            else
-              ...books.map(_buildBookCard),
-            _buildPaginationControls(),
-          ],
-        ),
-      ),
-    );
+  floatingActionButton: FloatingActionButton(
+    onPressed: () async {
+      final result = await Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => BookCreateScreen(),
+  ),
+);
+
+
+      if (result == true) {
+        _currentPage = 1;      
+        await _loadUserBooks(); 
+      }
+    },
+    backgroundColor: Colors.blue,
+    child: const Icon(Icons.add),
+  ),
+  body: RefreshIndicator(
+    onRefresh: () => _loadUserBooks(),
+    child: ListView(
+      children: [
+        _buildFilters(),
+        if (books.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(20),
+            child: Center(child: Text("Nemate unesenih knjiga")),
+          )
+        else
+          ...books.map(_buildBookCard),
+        _buildPaginationControls(),
+      ],
+    ),
+  ),
+);
+
   }
 }

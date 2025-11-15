@@ -26,6 +26,7 @@ class AdminScaffold extends StatelessWidget {
     {'icon': Icons.card_membership_rounded, 'label': 'Članarina'},
     {'icon': Icons.notifications_rounded, 'label': 'Obavijesti'},
     {'icon': Icons.person_rounded, 'label': 'Profil'},
+    {'icon': Icons.forum_rounded, 'label': 'Forum'},
   ];
 
   void _showLogoutDialog(BuildContext context) {

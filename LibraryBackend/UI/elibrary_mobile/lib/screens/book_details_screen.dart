@@ -31,9 +31,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   int _currentPage = 1;
   int _pageSize = 5;
   int _totalCount = 0;
+  bool _hasActiveLoan = false;
 
   int get _totalPages => _totalCount > 0 ? (_totalCount / _pageSize).ceil() : 1;
-
   double? _averageRating;
 
   @override
@@ -42,12 +42,44 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     _bookReviewProvider = context.read<BookReviewProvider>();
     _bookLoanProvider = context.read<BookLoanProvider>();
     _authProvider = context.read<AuthProvider>();
-    _loadReviews();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await Future.wait([
+      _loadReviews(),
+      _checkExistingLoan(),
+    ]);
+  }
+
+  Future<void> _checkExistingLoan() async {
+    final userId = _authProvider.currentUser?.id;
+    final bookId = widget.book.id;
+    if (userId == null || bookId == null) return;
+
+    try {
+      final filter = {
+        "userId": userId,
+        "bookId": bookId,
+      };
+
+      final result = await _bookLoanProvider.get(filter: filter);
+      final loans = result.result ?? [];
+
+      final hasActive = loans.any(
+        (loan) => loan.loanStatus != BookLoanStatus.returned,
+      );
+
+      setState(() {
+        _hasActiveLoan = hasActive;
+      });
+    } catch (e) {
+      debugPrint("Failed to check existing loan: $e");
+    }
   }
 
   Future<void> _loadReviews() async {
     setState(() => _isLoading = true);
-
     try {
       final filter = {
         "bookId": widget.book.id,
@@ -62,8 +94,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
 
       double avgRating = 0;
       if (reviews.isNotEmpty) {
-        avgRating = reviews.map((r) => r.rating ?? 0).reduce((a, b) => a + b) /
-            reviews.length;
+        avgRating = reviews.map((r) => r.rating ?? 0).reduce((a, b) => a + b) / reviews.length;
       }
 
       setState(() {
@@ -81,35 +112,33 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   }
 
   Future<void> _sendLoanRequest() async {
-  final userId = _authProvider.currentUser?.id;
-  final bookId = widget.book.id;
+    final userId = _authProvider.currentUser?.id;
+    final bookId = widget.book.id;
 
-  if (userId == null || bookId == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Neuspjela akcija: korisnik ili knjiga nisu pronađeni"),
-      ),
-    );
-    return;
+    if (userId == null || bookId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Neuspjela akcija: korisnik ili knjiga nisu pronađeni")),
+      );
+      return;
+    }
+
+    final requestBody = {
+      "userId": userId,
+      "bookId": bookId,
+    };
+
+    try {
+      await _bookLoanProvider.insert(requestBody);
+      setState(() => _hasActiveLoan = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Zahtjev za posudbu je poslan!")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Neuspjelo slanje zahtjeva: $e")),
+      );
+    }
   }
-
-  final requestBody = {
-    "userId": userId,
-    "bookId": bookId,
-  };
-
-  try {
-    await _bookLoanProvider.insert(requestBody);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Zahtjev za posudbu je poslan!")),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Neuspjelo slanje zahtjeva: $e")),
-    );
-  }
-}
-
 
   Widget _buildBookInfo() {
     final book = widget.book;
@@ -238,11 +267,15 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: _sendLoanRequest,
+            onPressed: _hasActiveLoan ? null : _sendLoanRequest,
             icon: const Icon(Icons.send),
-            label: const Text("Pošalji zahtjev za posudbu"), //TODO: hide button if loan request exists
+            label: Text(
+              _hasActiveLoan
+                  ? "Zahtjev već postoji"
+                  : "Pošalji zahtjev za posudbu",
+            ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: _hasActiveLoan ? Colors.grey : Colors.blue,
               padding: const EdgeInsets.symmetric(vertical: 12),
             ),
           ),
@@ -329,9 +362,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     children: [
                       _buildBookInfo(),
                       const SizedBox(height: 16),
-                      Text(
+                      const Text(
                         "Recenzije:",
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),

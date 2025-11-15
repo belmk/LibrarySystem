@@ -1,7 +1,11 @@
 import 'package:elibrary_mobile/screens/book_list_screen.dart';
+import 'package:elibrary_mobile/screens/notification_list_screen.dart';
+import 'package:elibrary_mobile/screens/subscription_screen.dart';
 import 'package:elibrary_mobile/screens/user_book_list_screen.dart';
+import 'package:elibrary_mobile/screens/user_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:elibrary_mobile/widgets/admin_scaffold.dart';
+import 'package:elibrary_mobile/screens/my_books_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -33,22 +37,22 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
       case 2: //Korisnici
         currentTitle = 'Korisnici';
-        currentScreen = const Center(child: Text("Nepoznata sekcija"));
+        currentScreen = const UserListScreen();
         break;
 
       case 3: //Moje knjige
         currentTitle = 'Moje knjige';
-        currentScreen = const Center(child: Text("Nepoznata sekcija"));
+        currentScreen = const UserBooksScreen();
         break;
 
       case 4: //Clanarina
         currentTitle = 'Članarina';
-        currentScreen = const Center(child: Text("Nepoznata sekcija"));
+        currentScreen = const SubscriptionScreen();
         break;
 
       case 5: //Obavijesti
         currentTitle = 'Obavijesti';
-        currentScreen = const Center(child: Text("Nepoznata sekcija"));
+        currentScreen = const NotificationListScreen();
         break;
 
       case 6: //Profil

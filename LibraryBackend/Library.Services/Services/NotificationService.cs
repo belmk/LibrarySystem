@@ -34,6 +34,11 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.Message.Contains(search.Message));
             }
 
+            if (search?.UserId != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.UserId == search.UserId);
+            }
+
             return filteredQuery;
         }
     }
