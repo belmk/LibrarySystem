@@ -8,7 +8,9 @@ namespace Library.Models.Enums
 {
     public enum BookExchangeStatus
     {
+        PendingApproval,
         BookDeliveryPhase,
-        BookReceivingPhase
+        BookReceivingPhase,
+        ExchangeCompleted
     }
 }

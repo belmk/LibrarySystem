@@ -98,6 +98,11 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.UserId == search.UserId);
             }
 
+            if (!String.IsNullOrEmpty(search?.Username))
+            {
+                filteredQuery = filteredQuery.Where(x => x.User.Username.ToLower().Contains(search.Username.ToLower()));
+            }
+
             return filteredQuery;
         }
     }

@@ -15,6 +15,7 @@ using Library.Models.DTOs.Roles;
 using Library.Models.DTOs.Subscriptions;
 using Library.Models.DTOs.Users;
 using Library.Models.Entities;
+using Library.Models.Requests;
 using Library.Models.SearchObjects;
 using Library.Services.Entities;
 using System;
@@ -109,6 +110,8 @@ namespace Library.Services.Mappings
             CreateMap<BookExchange, BookExchangeDto>();
             CreateMap<BookExchangeInsertDto, BookExchange>();
             CreateMap<BookExchangeUpdateDto, BookExchange>();
+
+            CreateMap<RegisterRequest, UserInsertDto>();
         }
     }
 }

@@ -213,68 +213,75 @@ class _UserBooksScreenState extends State<UserBooksScreen> {
   }
 
   Widget _buildFilters() {
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: Column(
-        children: [
-          TextField(
-            controller: _titleController,
-            decoration: const InputDecoration(
-              labelText: 'Naslov knjige',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
+  return Padding(
+    padding: const EdgeInsets.all(12.0),
+    child: Column(
+      children: [
+        TextField(
+          controller: _titleController,
+          decoration: const InputDecoration(
+            labelText: 'Naslov knjige',
+            prefixIcon: Icon(Icons.menu_book_outlined),
+            border: OutlineInputBorder(),
+            isDense: true,
           ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _authorController,
-            decoration: const InputDecoration(
-              labelText: 'Pisac',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
+        ),
+        const SizedBox(height: 12),
+
+        TextField(
+          controller: _authorController,
+          decoration: const InputDecoration(
+            labelText: 'Pisac',
+            prefixIcon: Icon(Icons.person_search_outlined),
+            border: OutlineInputBorder(),
+            isDense: true,
           ),
-          const SizedBox(height: 8),
-          _isGenreLoading
-              ? const Center(child: CircularProgressIndicator())
-              : DropdownButtonFormField<Genre>(
-                  decoration: const InputDecoration(
-                    labelText: 'Žanr',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                  value: _selectedGenre,
-                  items: _genres
-                      .map((g) => DropdownMenuItem(
-                            value: g,
-                            child: Text(g.name ?? ""),
-                          ))
-                      .toList(),
-                  onChanged: (val) {
-                    setState(() => _selectedGenre = val);
-                  },
+        ),
+        const SizedBox(height: 12),
+
+        _isGenreLoading
+            ? const Center(child: CircularProgressIndicator())
+            : DropdownButtonFormField<Genre>(
+                decoration: const InputDecoration(
+                  labelText: 'Žanr',
+                  prefixIcon: Icon(Icons.category_outlined),
+                  border: OutlineInputBorder(),
+                  isDense: true,
                 ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                onPressed: () {
-                  setState(() => _currentPage = 1);
-                  _loadUserBooks();
+                value: _selectedGenre,
+                items: _genres
+                    .map((g) => DropdownMenuItem(
+                          value: g,
+                          child: Text(g.name ?? ""),
+                        ))
+                    .toList(),
+                onChanged: (val) {
+                  setState(() => _selectedGenre = val);
                 },
-                icon: const Icon(Icons.search, color: Colors.blueAccent),
               ),
-              IconButton(
-                onPressed: _resetFilters,
-                icon: const Icon(Icons.refresh, color: Colors.grey),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+        const SizedBox(height: 16),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            IconButton(
+              onPressed: () {
+                setState(() => _currentPage = 1);
+                _loadUserBooks();
+              },
+              icon: const Icon(Icons.search, color: Colors.blueAccent),
+            ),
+            IconButton(
+              onPressed: _resetFilters,
+              icon: const Icon(Icons.refresh, color: Colors.grey),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildPaginationControls() {
     return Padding(

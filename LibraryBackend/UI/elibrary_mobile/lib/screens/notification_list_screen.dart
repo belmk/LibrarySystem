@@ -1,3 +1,4 @@
+import 'package:elibrary_mobile/screens/pending_book_exchange_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -103,7 +104,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
     );
   }
 
-  Widget _buildNotificationCard(model.Notification notification) { //TODO: add buttons to card
+  Widget _buildNotificationCard(model.Notification notification) {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -132,39 +133,55 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (_errorMessage != null) {
-      return Scaffold(
-        body: Center(child: Text(_errorMessage!)),
-      );
-    }
-
-    final notifications = _notificationResult?.result ?? [];
-
-    return Scaffold(
-      appBar: AppBar(title: const Text("Notifikacije")),
-      body: RefreshIndicator(
-        onRefresh: _loadNotifications,
-        child: ListView(
-          children: [
-            if (notifications.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(20),
-                child: Center(child: Text("Nemate notifikacija.")),
-              )
-            else
-              ...notifications.map(_buildNotificationCard),
-
-            _buildPaginationControls(),
-          ],
-        ),
-      ),
+Widget build(BuildContext context) {
+  if (_isLoading) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
     );
   }
+
+  if (_errorMessage != null) {
+    return Scaffold(
+      body: Center(child: Text(_errorMessage!)),
+    );
+  }
+
+  final notifications = _notificationResult?.result ?? [];
+
+  return Scaffold(
+    appBar: AppBar(
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.pending_actions),
+          tooltip: "Zahtjevi za razmjenu",
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PendingBookExchangeScreen(),
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+    body: RefreshIndicator(
+      onRefresh: _loadNotifications,
+      child: ListView(
+        children: [
+          if (notifications.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(child: Text("Nemate notifikacija.")),
+            )
+          else
+            ...notifications.map(_buildNotificationCard),
+
+          _buildPaginationControls(),
+        ],
+      ),
+    ),
+  );
+}
+
 }

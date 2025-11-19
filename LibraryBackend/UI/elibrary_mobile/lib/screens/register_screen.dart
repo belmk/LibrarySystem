@@ -43,6 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           "username": _usernameController.text.trim(),
           "email": _emailController.text.trim(),
           "password": _passwordController.text.trim(),
+          "confirmpassword": _confirmController.text.trim(),
         }),
       );
 
@@ -110,7 +111,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   size: 40,
                 ),
                 const SizedBox(height: 10),
-
                 Text(
                   "Registracija",
                   style: theme.textTheme.headlineSmall?.copyWith(
@@ -126,7 +126,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 25),
-
                 Row(
                   children: [
                     Expanded(
@@ -161,7 +160,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-
                 TextFormField(
                   controller: _usernameController,
                   decoration: InputDecoration(
@@ -175,7 +173,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       v == null || v.isEmpty ? "Unesite korisničko ime" : null,
                 ),
                 const SizedBox(height: 20),
-
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
@@ -189,7 +186,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       v == null || !v.contains("@") ? "Unesite validan email" : null,
                 ),
                 const SizedBox(height: 20),
-
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePas,
@@ -210,7 +206,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       v == null || v.length < 6 ? "Min 6 karaktera" : null,
                 ),
                 const SizedBox(height: 20),
-
                 TextFormField(
                   controller: _confirmController,
                   obscureText: _obscureCon,
@@ -232,7 +227,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       : null,
                 ),
                 const SizedBox(height: 30),
-
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -252,7 +246,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                 ),
                 const SizedBox(height: 25),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

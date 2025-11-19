@@ -1,4 +1,5 @@
 import 'package:elibrary_mobile/providers/author_provider.dart';
+import 'package:elibrary_mobile/providers/book_exchange_provider.dart';
 import 'package:elibrary_mobile/providers/book_loan_provider.dart';
 import 'package:elibrary_mobile/providers/book_provider.dart';
 import 'package:elibrary_mobile/providers/book_review_provider.dart';
@@ -47,6 +48,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthorProvider()),
         ChangeNotifierProvider(create: (_) => SubscriptionProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => BookExchangeProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

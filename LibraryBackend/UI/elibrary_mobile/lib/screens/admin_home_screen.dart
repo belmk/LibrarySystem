@@ -1,4 +1,5 @@
 import 'package:elibrary_mobile/screens/book_list_screen.dart';
+import 'package:elibrary_mobile/screens/forum_screen.dart';
 import 'package:elibrary_mobile/screens/notification_list_screen.dart';
 import 'package:elibrary_mobile/screens/subscription_screen.dart';
 import 'package:elibrary_mobile/screens/user_book_list_screen.dart';
@@ -60,6 +61,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         currentScreen = const Center(child: Text("Nepoznata sekcija"));
         break;
         
+      case 7: //Forum
+        currentTitle = 'Forum';
+        currentScreen = const MobileForumScreen();
+        break;
+
       default:
         currentTitle = "Početna";
         currentScreen = const Center(child: Text("Nepoznata sekcija"));

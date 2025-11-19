@@ -27,6 +27,9 @@ class _BookListScreenState extends State<BookListScreen> {
   late AuthProvider _authProvider;
   late BookReviewProvider _bookReviewProvider;
 
+  List<Book> _recommendedBooks = [];
+  bool _isRecommendedLoading = true;
+
   SearchResult<Book>? _bookResult;
   List<Genre> _genres = [];
   bool _isLoading = true;
@@ -54,11 +57,30 @@ class _BookListScreenState extends State<BookListScreen> {
     _authProvider = context.read<AuthProvider>();
     _bookReviewProvider = context.read<BookReviewProvider>();
 
-
     _loadGenres();
     _loadBooks(); 
     _loadUserLoans(); 
+    _loadRecommendedBooks();
   }
+
+  Future<void> _loadRecommendedBooks() async {
+  setState(() {
+    _isRecommendedLoading = true;
+  });
+
+  if (_bookResult == null) {
+    await _loadBooks();
+  }
+
+  final allBooks = _bookResult?.result ?? [];
+
+  _recommendedBooks = allBooks.take(3).toList();
+
+  setState(() {
+    _isRecommendedLoading = false;
+  });
+}
+
 
   Future<void> _loadGenres() async {
     try {
@@ -132,6 +154,40 @@ class _BookListScreenState extends State<BookListScreen> {
     });
     _loadBooks();
   }
+
+Widget _buildRecommendedSection() {
+  if (_isRecommendedLoading) {
+    return const Padding(
+      padding: EdgeInsets.all(20),
+      child: Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  if (_recommendedBooks.isEmpty) {
+    return const SizedBox.shrink();
+  }
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Možda vam se svidi...",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        Column(
+          children: _recommendedBooks.take(3).map(_buildBookCard).toList(),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildBookCard(Book book) {
     ImageProvider imageProvider;
@@ -328,73 +384,80 @@ class _BookListScreenState extends State<BookListScreen> {
     );
   }
 
-  Widget _buildFilters() {
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: Column(
-        children: [
-          TextField(
-            controller: _titleController,
-            decoration: const InputDecoration(
-              labelText: 'Naslov knjige',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
+ Widget _buildFilters() {
+  return Padding(
+    padding: const EdgeInsets.all(12.0),
+    child: Column(
+      children: [
+        TextField(
+          controller: _titleController,
+          decoration: const InputDecoration(
+            labelText: 'Naslov knjige',
+            prefixIcon: Icon(Icons.book_outlined),
+            border: OutlineInputBorder(),
+            isDense: true,
           ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _authorController,
-            decoration: const InputDecoration(
-              labelText: 'Pisac',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
+        ),
+        const SizedBox(height: 12),
+
+        TextField(
+          controller: _authorController,
+          decoration: const InputDecoration(
+            labelText: 'Pisac',
+            prefixIcon: Icon(Icons.person_search_outlined),
+            border: OutlineInputBorder(),
+            isDense: true,
           ),
-          const SizedBox(height: 8),
-          _isGenreLoading
-              ? const Center(child: CircularProgressIndicator())
-              : DropdownButtonFormField<Genre>(
-                  decoration: const InputDecoration(
-                    labelText: 'Žanr',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                  value: _selectedGenre,
-                  items: _genres.map((g) {
-                    return DropdownMenuItem(
-                      value: g,
-                      child: Text(g.name ?? ""),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    setState(() => _selectedGenre = val);
-                  },
+        ),
+        const SizedBox(height: 12),
+
+        _isGenreLoading
+            ? const Center(child: CircularProgressIndicator())
+            : DropdownButtonFormField<Genre>(
+                decoration: const InputDecoration(
+                  labelText: 'Žanr',
+                  prefixIcon: Icon(Icons.category_outlined),
+                  border: OutlineInputBorder(),
+                  isDense: true,
                 ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                onPressed: () {
+                value: _selectedGenre,
+                items: _genres.map((g) {
+                  return DropdownMenuItem(
+                    value: g,
+                    child: Text(g.name ?? ""),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  setState(() => _selectedGenre = val);
+                },
+              ),
+        const SizedBox(height: 16),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            IconButton(
+              onPressed: () {
                 setState(() {
-                  _currentPage = 1; 
+                  _currentPage = 1;
                 });
                 _loadBooks(useFilters: true);
               },
-                icon: const Icon(Icons.search, color: Colors.blueAccent),
-                tooltip: 'Pretraži',
-              ),
-              IconButton(
-                onPressed: _resetFilters,
-                icon: const Icon(Icons.refresh, color: Colors.grey),
-                tooltip: 'Resetuj filtere',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+              icon: const Icon(Icons.search, color: Colors.blueAccent),
+              tooltip: 'Pretraži',
+            ),
+            IconButton(
+              onPressed: _resetFilters,
+              icon: const Icon(Icons.refresh, color: Colors.grey),
+              tooltip: 'Resetuj filtere',
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildPaginationControls() {
     return Padding(
@@ -456,6 +519,7 @@ class _BookListScreenState extends State<BookListScreen> {
             else
               ...books.map(_buildBookCard),
             _buildPaginationControls(),
+            _buildRecommendedSection(),
           ],
         ),
       ),

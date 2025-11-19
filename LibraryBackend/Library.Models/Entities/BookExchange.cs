@@ -26,7 +26,7 @@ namespace Library.Models.Entities
 
         public bool OfferUserAction { get; set; } = false;
         public bool ReceiverUserAction { get; set; } = false;
-        public BookExchangeStatus BookExchangeStatus { get; set; } = BookExchangeStatus.BookDeliveryPhase;
+        public BookExchangeStatus BookExchangeStatus { get; set; } = BookExchangeStatus.PendingApproval;
 
     }
 }

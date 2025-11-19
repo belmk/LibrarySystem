@@ -118,52 +118,57 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   Widget _buildFilters() {
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: Column(
-        children: [
-          TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Ime korisnika',
-              border: OutlineInputBorder(),
-              isDense: true,
+  return Padding(
+    padding: const EdgeInsets.all(12.0),
+    child: Column(
+      children: [
+        TextField(
+          controller: _nameController,
+          decoration: const InputDecoration(
+            labelText: 'Ime korisnika',
+            prefixIcon: Icon(Icons.person_outline),
+            border: OutlineInputBorder(),
+            isDense: true,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        TextField(
+          controller: _emailController,
+          decoration: const InputDecoration(
+            labelText: 'Email',
+            prefixIcon: Icon(Icons.email_outlined),
+            border: OutlineInputBorder(),
+            isDense: true,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  _currentPage = 1;
+                });
+                _loadUsers(useFilters: true);
+              },
+              icon: const Icon(Icons.search, color: Colors.blueAccent),
+              tooltip: 'Pretraži',
             ),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _emailController,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              border: OutlineInputBorder(),
-              isDense: true,
+            IconButton(
+              onPressed: _resetFilters,
+              icon: const Icon(Icons.refresh, color: Colors.grey),
+              tooltip: 'Resetuj filtere',
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    _currentPage = 1;
-                  });
-                  _loadUsers(useFilters: true);
-                },
-                icon: const Icon(Icons.search, color: Colors.blueAccent),
-                tooltip: 'Pretraži',
-              ),
-              IconButton(
-                onPressed: _resetFilters,
-                icon: const Icon(Icons.refresh, color: Colors.grey),
-                tooltip: 'Resetuj filtere',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildPaginationControls() {
     return Padding(

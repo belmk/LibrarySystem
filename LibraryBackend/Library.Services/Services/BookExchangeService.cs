@@ -51,13 +51,31 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.BookExchangeStatus == search.BookExchangeStatus);
             }
 
-                return filteredQuery;
+            if (search?.OfferUserId != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.OfferUserId == search.OfferUserId);
+            }
+
+            if (search?.ReceiverUserId != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.ReceiverUserId == search.ReceiverUserId);
+            }
+
+            return filteredQuery;
         }
 
         public override Task BeforeUpdate(BookExchange entity, BookExchangeUpdateDto update)
         {
             var offerAction = update.OfferUserAction ?? entity.OfferUserAction;
             var receiverAction = update.ReceiverUserAction ?? entity.ReceiverUserAction;
+
+            if (entity.BookExchangeStatus == BookExchangeStatus.PendingApproval && receiverAction == true)
+            {
+                update.OfferUserAction = false;
+                update.ReceiverUserAction = false;
+                update.BookExchangeStatus = BookExchangeStatus.BookDeliveryPhase;
+            }
+
 
             if (offerAction == true && receiverAction == true && entity.BookExchangeStatus == BookExchangeStatus.BookDeliveryPhase)
             {

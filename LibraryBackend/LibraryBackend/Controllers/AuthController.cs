@@ -1,6 +1,6 @@
-﻿using Library.Services.Interfaces;
+﻿using Library.Models.Requests;
+using Library.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryBackend.Controllers
@@ -33,6 +33,30 @@ namespace LibraryBackend.Controllers
                 username = user.Username,
             });
         }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var user = await _authService.Register(request);
+
+                return CreatedAtAction(nameof(Register), new
+                {
+                    message = "Registration successful",
+                    user
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
 
         public class LoginRequest
         {

@@ -10,6 +10,8 @@ namespace Library.Models.SearchObjects
 {
     public class BookExchangeSearchObject : BaseSearchObject
     {
+        public int? OfferUserId { get; set; }
+        public int? ReceiverUserId { get; set; }
         public string? Username { get; set; }
         public string? Email { get; set; }
         public string? Title { get; set; }
