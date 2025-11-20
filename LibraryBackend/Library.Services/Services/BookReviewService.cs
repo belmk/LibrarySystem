@@ -37,7 +37,7 @@ namespace Library.Services.Services
             {
                 UserId = entity.UserId,
                 Description = $"Ostavio/la recenziju {entity.Rating}/5 na knjigu {entity.Book?.Title}",
-                ActivityDate = DateTime.UtcNow,
+                ActivityDate = DateTime.Now,
             };
 
             await _activityService.Insert(activity);

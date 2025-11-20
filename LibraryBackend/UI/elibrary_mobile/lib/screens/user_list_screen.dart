@@ -1,3 +1,5 @@
+import 'package:elibrary_mobile/screens/create_complaint_screen.dart';
+import 'package:elibrary_mobile/screens/user_book_list_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:elibrary_mobile/models/user.dart';
@@ -69,53 +71,123 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   Widget _buildUserCard(User user) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      elevation: 3,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              user.username ?? "Nepoznato korisničko ime",
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 16),
+  return Card(
+    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    elevation: 3,
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title
+          Text(
+            user.username ?? "Nepoznato korisničko ime",
+            style: const TextStyle(
+              fontWeight: FontWeight.bold, 
+              fontSize: 16,
             ),
-            const SizedBox(height: 6),
-            Text("${user.firstName ?? '-'} ${user.lastName ?? ''}"),
-            const SizedBox(height: 4),
-            Text("Email: ${user.email ?? '-'}"),
-            const SizedBox(height: 4),
-            Text("Uloga: ${user.role?.name ?? '-'}"),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () {},
+          ),
+          const SizedBox(height: 8),
+
+          // Info rows with icons
+          Row(
+            children: [
+              const Icon(Icons.person, size: 16, color: Colors.grey),
+              const SizedBox(width: 4),
+              Expanded(child: Text("${user.firstName ?? '-'} ${user.lastName ?? ''}")),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.email, size: 16, color: Colors.grey),
+              const SizedBox(width: 4),
+              Expanded(child: Text(user.email ?? '-')),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.admin_panel_settings, size: 16, color: Colors.grey),
+              const SizedBox(width: 4),
+              Expanded(child: Text(user.role?.name ?? '-')),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => UserBookListModal(userId: user.id!),
+                  );
+                },
                   icon: const Icon(Icons.menu_book, size: 18),
-                  label: const Text("Pogledaj knjige"), //TODO: izlistaj knjige korisnika
+                  label: const Text("Knjige"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
                 ),
-                OutlinedButton.icon(
-                  onPressed: () {},
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    // TODO: allow user to leave a review
+                  },
                   icon: const Icon(Icons.rate_review, size: 18),
-                  label: const Text("Ostavi recenziju"), //TODO: update model za recenzije da dopusta user recenzije
+                  label: const Text("Recenzija"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
                 ),
-                OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.report_problem, size: 18, color: Colors.red),
-                  label: const Text("Pošalji žalbu"), //TODO: posalji zalbu 
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.white,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    builder: (context) => Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                      ),
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.4,
+                        child: CreateComplaintScreen(targetUser: user),
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.report_problem, size: 18),
+                label: const Text("Pošalji žalbu"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                 ),
-              ],
+              ),
             ),
-          ],
-        ),
+
+            ],
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
+
 
   Widget _buildFilters() {
   return Padding(

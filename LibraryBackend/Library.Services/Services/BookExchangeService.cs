@@ -69,19 +69,25 @@ namespace Library.Services.Services
             var offerAction = update.OfferUserAction ?? entity.OfferUserAction;
             var receiverAction = update.ReceiverUserAction ?? entity.ReceiverUserAction;
 
-            if (entity.BookExchangeStatus == BookExchangeStatus.PendingApproval && receiverAction == true)
+            if (entity.BookExchangeStatus == BookExchangeStatus.PendingApproval && receiverAction == true) // accepting trade condition
             {
                 update.OfferUserAction = false;
                 update.ReceiverUserAction = false;
                 update.BookExchangeStatus = BookExchangeStatus.BookDeliveryPhase;
             }
 
-
-            if (offerAction == true && receiverAction == true && entity.BookExchangeStatus == BookExchangeStatus.BookDeliveryPhase)
+            if (offerAction == true && receiverAction == true && entity.BookExchangeStatus == BookExchangeStatus.BookDeliveryPhase) // delivered both books 
             {
                 update.OfferUserAction = false;
                 update.ReceiverUserAction = false;
                 update.BookExchangeStatus = BookExchangeStatus.BookReceivingPhase;
+            }
+
+            if (offerAction == true && receiverAction == true && entity.BookExchangeStatus == BookExchangeStatus.BookReceivingPhase) // exchange complete
+            {
+                update.OfferUserAction = false;
+                update.ReceiverUserAction = false;
+                update.BookExchangeStatus = BookExchangeStatus.ExchangeCompleted;
             }
 
             return Task.CompletedTask;

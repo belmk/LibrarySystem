@@ -13,6 +13,7 @@ using Library.Models.DTOs.Genres;
 using Library.Models.DTOs.Notifications;
 using Library.Models.DTOs.Roles;
 using Library.Models.DTOs.Subscriptions;
+using Library.Models.DTOs.UserReviews;
 using Library.Models.DTOs.Users;
 using Library.Models.Entities;
 using Library.Models.Requests;
@@ -112,6 +113,10 @@ namespace Library.Services.Mappings
             CreateMap<BookExchangeUpdateDto, BookExchange>();
 
             CreateMap<RegisterRequest, UserInsertDto>();
+
+            CreateMap<UserReview, UserReviewDto>();
+            CreateMap<UserReviewInsertDto, UserReview>();
+            CreateMap<UserReviewUpdateDto, UserReview>();
         }
     }
 }

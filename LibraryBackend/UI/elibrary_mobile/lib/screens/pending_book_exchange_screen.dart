@@ -4,6 +4,7 @@ import '../providers/auth_provider.dart';
 import '../providers/book_exchange_provider.dart';
 import '../models/book_exchange.dart';
 import '../models/book_exchange_status.dart';
+import 'package:elibrary_mobile/screens/exchange_details_screen.dart';
 
 class PendingBookExchangeScreen extends StatefulWidget {
   const PendingBookExchangeScreen({Key? key}) : super(key: key);
@@ -93,7 +94,12 @@ class _PendingBookExchangeScreenState extends State<PendingBookExchangeScreen> {
         trailing: ElevatedButton(
           child: const Text("Pregled"),
           onPressed: () {
-            
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ExchangeDetailsScreen(exchange: exchange),
+              ),
+            );
           },
         ),
       ),
