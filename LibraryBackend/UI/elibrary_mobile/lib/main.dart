@@ -8,6 +8,7 @@ import 'package:elibrary_mobile/providers/genre_provider.dart';
 import 'package:elibrary_mobile/providers/notification_provider.dart';
 import 'package:elibrary_mobile/providers/subscription_provider.dart';
 import 'package:elibrary_mobile/providers/user_provider.dart';
+import 'package:elibrary_mobile/providers/user_review_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
@@ -51,7 +52,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => BookExchangeProvider()),
         ChangeNotifierProvider(create: (_) => ComplaintProvider()),
-
+        ChangeNotifierProvider(create: (_) => UserReviewProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

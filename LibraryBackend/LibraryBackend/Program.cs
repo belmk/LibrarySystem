@@ -26,6 +26,7 @@ builder.Services.AddTransient<IActivityService,  ActivityService>();
 builder.Services.AddTransient<IBookLoanService, BookLoanService>();
 builder.Services.AddTransient<IBookExchangeService, BookExchangeService>();
 builder.Services.AddTransient<IDashboardService, DashboardService>();
+builder.Services.AddTransient<IUserReviewService, UserReviewService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 
 builder.Services.AddControllers();

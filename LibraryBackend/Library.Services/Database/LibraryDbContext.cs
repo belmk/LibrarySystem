@@ -28,6 +28,7 @@ namespace Library.Services.Database
         public DbSet<BookLoan> BookLoans { get; set; }
         public DbSet<Activity> Activities { get; set; }
         public DbSet<BookExchange> BookExchanges { get; set; }
+        public DbSet<UserReview> UserReviews { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -132,6 +133,19 @@ namespace Library.Services.Database
                 .WithMany()
                 .HasForeignKey(be => be.ReceiverUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserReview>()
+                .HasOne(ur => ur.ReviewedUser)
+                .WithMany()
+                .HasForeignKey(ur => ur.ReviewedUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserReview>()
+                .HasOne(ur => ur.ReviewerUser)
+                .WithMany()
+                .HasForeignKey(ur => ur.ReviewerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
 
     }

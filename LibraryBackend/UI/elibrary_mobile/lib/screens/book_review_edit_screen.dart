@@ -89,7 +89,7 @@ class _ExistingReviewScreenState extends State<ExistingReviewScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Recenzija uspješno obrisana!")),
       );
-      Navigator.pop(context); // Close modal
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Greška pri brisanju recenzije: $e")),
@@ -118,7 +118,6 @@ class _ExistingReviewScreenState extends State<ExistingReviewScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Dropdown copied from BookReviewScreen
               DropdownButtonFormField<int>(
                 decoration: const InputDecoration(
                   labelText: "Ocjena",
@@ -140,7 +139,6 @@ class _ExistingReviewScreenState extends State<ExistingReviewScreen> {
               ),
               const SizedBox(height: 16),
 
-              // TextField copied from BookReviewScreen
               TextFormField(
                 controller: _commentController,
                 decoration: const InputDecoration(

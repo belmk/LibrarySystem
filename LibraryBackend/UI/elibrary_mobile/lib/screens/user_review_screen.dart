@@ -1,41 +1,48 @@
-import 'package:elibrary_mobile/models/book.dart';
-import 'package:elibrary_mobile/providers/book_review_provider.dart';
+import 'package:elibrary_mobile/models/user.dart';
+import 'package:elibrary_mobile/providers/user_review_provider.dart';
 import 'package:elibrary_mobile/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class BookReviewScreen extends StatefulWidget {
-  final Book book;
+class UserReviewScreen extends StatefulWidget {
+  final User reviewedUser;
 
-  const BookReviewScreen({Key? key, required this.book}) : super(key: key);
+  const UserReviewScreen({Key? key, required this.reviewedUser}) : super(key: key);
 
   @override
-  State<BookReviewScreen> createState() => _BookReviewScreenState();
+  State<UserReviewScreen> createState() => _UserReviewScreenState();
 }
 
-class _BookReviewScreenState extends State<BookReviewScreen> {
+class _UserReviewScreenState extends State<UserReviewScreen> {
   final _formKey = GlobalKey<FormState>();
   int? _selectedRating;
   final TextEditingController _commentController = TextEditingController();
   bool _isSubmitting = false;
 
-  late BookReviewProvider _bookReviewProvider;
+  late UserReviewProvider _userReviewProvider;
   late AuthProvider _authProvider;
 
   @override
   void initState() {
     super.initState();
-    _bookReviewProvider = context.read<BookReviewProvider>();
+    _userReviewProvider = context.read<UserReviewProvider>();
     _authProvider = context.read<AuthProvider>();
   }
 
   Future<void> _submitReview() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final user = _authProvider.currentUser;
-    if (user == null) {
+    final reviewer = _authProvider.currentUser;
+    if (reviewer == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Morate biti prijavljeni da ostavite recenziju.")),
+      );
+      return;
+    }
+
+    if (reviewer.id == widget.reviewedUser.id) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ne možete recenzirati samog sebe.")),
       );
       return;
     }
@@ -44,19 +51,19 @@ class _BookReviewScreenState extends State<BookReviewScreen> {
 
     try {
       final review = {
-        "bookId": widget.book.id,
-        "userId": user.id,
+        "reviewerUserId": reviewer.id,
+        "reviewedUserId": widget.reviewedUser.id,
         "rating": _selectedRating,
         "comment": _commentController.text.trim(),
       };
 
-      await _bookReviewProvider.insert(review);
+      await _userReviewProvider.insert(review);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Recenzija uspješno poslana!")),
       );
 
-      Navigator.of(context).pop(); // close modal
+      Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Greška pri slanju recenzije: $e")),
@@ -78,7 +85,7 @@ class _BookReviewScreenState extends State<BookReviewScreen> {
             children: [
               Center(
                 child: Text(
-                  "Recenzija za \"${widget.book.title}\"",
+                  "Recenzija za korisnika \"${widget.reviewedUser.username}\"",
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
@@ -105,7 +112,7 @@ class _BookReviewScreenState extends State<BookReviewScreen> {
                 controller: _commentController,
                 decoration: const InputDecoration(
                   labelText: "Komentar",
-                  hintText: "Ostavite svoj komentar o knjizi...",
+                  hintText: "Ostavite komentar o korisniku...",
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 5,
