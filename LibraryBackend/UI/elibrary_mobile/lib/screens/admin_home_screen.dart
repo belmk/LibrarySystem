@@ -1,6 +1,7 @@
 import 'package:elibrary_mobile/screens/book_list_screen.dart';
 import 'package:elibrary_mobile/screens/forum_screen.dart';
 import 'package:elibrary_mobile/screens/notification_list_screen.dart';
+import 'package:elibrary_mobile/screens/profile_edit_screen.dart';
 import 'package:elibrary_mobile/screens/subscription_screen.dart';
 import 'package:elibrary_mobile/screens/user_book_list_screen.dart';
 import 'package:elibrary_mobile/screens/user_list_screen.dart';
@@ -58,7 +59,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
       case 6: //Profil
         currentTitle = 'Profil';
-        currentScreen = const Center(child: Text("Nepoznata sekcija"));
+        currentScreen = const UserProfileEditScreen();
         break;
         
       case 7: //Forum

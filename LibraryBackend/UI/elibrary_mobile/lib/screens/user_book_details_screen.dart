@@ -224,15 +224,13 @@ class _UserBookDetailsScreenState extends State<UserBookDetailsScreen> {
         ),
         const Divider(height: 30),
         const SizedBox(height: 12),
+        if (widget.book.user?.id != _authProvider.currentUser?.id)
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: _openSelectBookModal,
             icon: const Icon(Icons.send),
             label: const Text("Pošalji upit za zamjenu"),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
           ),
         ),
       ],

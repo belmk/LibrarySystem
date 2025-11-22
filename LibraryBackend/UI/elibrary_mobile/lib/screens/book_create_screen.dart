@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:elibrary_mobile/models/book.dart';
 import 'package:elibrary_mobile/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,7 +14,9 @@ import 'package:elibrary_mobile/providers/author_provider.dart';
 import 'package:elibrary_mobile/providers/genre_provider.dart';
 
 class BookCreateScreen extends StatefulWidget {
-  const BookCreateScreen({Key? key}) : super(key: key);
+  final Book? bookToEdit;
+
+  const BookCreateScreen({Key? key, this.bookToEdit}) : super(key: key);
 
   @override
   State<BookCreateScreen> createState() => _BookCreateScreenState();
@@ -44,6 +47,8 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
   late GenreProvider _genreProvider;
   late AuthProvider _authProvider;
 
+  bool get isEditing => widget.bookToEdit != null;
+
   @override
   void initState() {
     super.initState();
@@ -57,22 +62,27 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
-    try {
-      final authorsResult = await _authorProvider.get();
-      final genresResult = await _genreProvider.get();
+    final authorsResult = await _authorProvider.get();
+    final genresResult = await _genreProvider.get();
 
-      setState(() {
-        _authors = authorsResult.result;
-        _genres = genresResult.result;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
+    _authors = authorsResult.result;
+    _genres = genresResult.result;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Greška pri učitavanju podataka: $e")),
-      );
+    if (isEditing) {
+      final b = widget.bookToEdit!;
+      _titleController.text = b.title ?? "";
+      _descriptionController.text = b.description ?? "";
+      _pageNumberController.text = b.pageNumber?.toString() ?? "";
+      _selectedAuthorId = b.author?.id;
+      _selectedGenreIds = b.genres?.map((g) => g.id!).toList() ?? [];
+
+      if (b.coverImageBase64 != null && b.coverImageBase64!.isNotEmpty) {
+        _imageBase64 = b.coverImageBase64;
+        _imageFormat = "image/jpeg";
+      }
     }
+
+    setState(() => _isLoading = false);
   }
 
   Future<void> _pickImage() async {
@@ -86,13 +96,8 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
       setState(() {
         _selectedImage = file;
         _imageBase64 = base64Encode(bytes);
-
         final ext = file.path.split('.').last.toLowerCase();
-        if (ext == "png") {
-          _imageFormat = "image/png";
-        } else {
-          _imageFormat = "image/jpeg";
-        }
+        _imageFormat = ext == "png" ? "image/png" : "image/jpeg";
       });
     }
   }
@@ -112,29 +117,33 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
       "Title": _titleController.text.trim(),
       "Description": _descriptionController.text.trim(),
       "PageNumber": int.tryParse(_pageNumberController.text.trim()) ?? 0,
-      "AvailableNumber": 1, 
+      "AvailableNumber": 1,
       "GenreIds": _selectedGenreIds,
       "CoverImageBase64": _imageBase64,
       "CoverImageContentType": _imageFormat,
-      "IsUserBook": true, 
-      "UserId":  _authProvider.currentUser?.id
+      "IsUserBook": true,
+      "UserId": _authProvider.currentUser?.id
     };
 
     setState(() => _isSubmitting = true);
 
     try {
-      await _bookProvider.insert(dto);
+      if (isEditing) {
+        await _bookProvider.update(widget.bookToEdit!.id!, dto);
+      } else {
+        await _bookProvider.insert(dto);
+      }
 
       if (mounted) {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Knjiga uspješno dodana.")),
+          SnackBar(content: Text(isEditing ? "Knjiga ažurirana." : "Knjiga uspješno dodana.")),
         );
       }
     } catch (e) {
       setState(() => _isSubmitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Greška pri spremanju knjige: $e")),
+        SnackBar(content: Text("Greška: $e")),
       );
     }
   }
@@ -146,7 +155,7 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
         final selected = _selectedGenreIds.contains(genre.id);
 
         return FilterChip(
-          label: Text(genre.name ?? "Nepoznat"),
+          label: Text(genre.name ?? ""),
           selected: selected,
           showCheckmark: false,
           selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.25),
@@ -168,7 +177,7 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Dodaj novu knjigu"),
+        title: Text(isEditing ? "Uredi knjigu" : "Dodaj novu knjigu"),
       ),
       body: Stack(
         children: [
@@ -187,8 +196,7 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
                         labelText: "Naslov",
                         border: OutlineInputBorder(),
                       ),
-                      validator: (v) =>
-                          v == null || v.isEmpty ? "Unesite naslov" : null,
+                      validator: (v) => v == null || v.isEmpty ? "Unesite naslov" : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -219,7 +227,6 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
                           style: Theme.of(context).textTheme.titleMedium),
                     ),
                     const SizedBox(height: 8),
-
                     GestureDetector(
                       onTap: _pickImage,
                       child: Container(
@@ -233,10 +240,7 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
                         child: _selectedImage != null
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
-                                child: Image.file(
-                                  _selectedImage!,
-                                  fit: BoxFit.cover,
-                                ),
+                                child: Image.file(_selectedImage!, fit: BoxFit.cover),
                               )
                             : (_imageBase64 != null)
                                 ? ClipRRect(
@@ -248,8 +252,7 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
                                   )
                                 : const Center(
                                     child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Icon(Icons.add_a_photo, size: 40),
                                         SizedBox(height: 8),
@@ -259,28 +262,23 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
                                   ),
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
                     DropdownButtonFormField<int>(
                       value: _selectedAuthorId,
                       decoration: const InputDecoration(
                         labelText: "Autor",
                         border: OutlineInputBorder(),
                       ),
-                      items: _authors.map((author) {
-                        return DropdownMenuItem<int>(
-                          value: author.id,
-                          child: Text("${author.firstName} ${author.lastName}"),
-                        );
-                      }).toList(),
+                      items: _authors
+                          .map((author) => DropdownMenuItem<int>(
+                                value: author.id,
+                                child: Text("${author.firstName} ${author.lastName}"),
+                              ))
+                          .toList(),
                       onChanged: (v) => setState(() => _selectedAuthorId = v),
-                      validator: (v) =>
-                          v == null ? "Izaberite autora" : null,
+                      validator: (v) => v == null ? "Izaberite autora" : null,
                     ),
-
                     const SizedBox(height: 24),
-
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text("Žanrovi",
@@ -288,9 +286,7 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
                     ),
                     const SizedBox(height: 8),
                     _buildGenreChips(),
-
                     const SizedBox(height: 30),
-
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -304,7 +300,7 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Text("Dodaj knjigu"),
+                            : Text(isEditing ? "Sačuvaj promjene" : "Dodaj knjigu"),
                       ),
                     ),
                   ],

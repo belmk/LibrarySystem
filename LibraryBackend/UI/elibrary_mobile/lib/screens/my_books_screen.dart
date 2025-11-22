@@ -3,11 +3,10 @@ import 'package:elibrary_mobile/models/book.dart';
 import 'package:elibrary_mobile/models/genre.dart';
 import 'package:elibrary_mobile/models/search_result.dart';
 import 'package:elibrary_mobile/providers/auth_provider.dart';
-import 'package:elibrary_mobile/providers/author_provider.dart';
 import 'package:elibrary_mobile/providers/book_provider.dart';
 import 'package:elibrary_mobile/providers/genre_provider.dart';
 import 'package:elibrary_mobile/screens/book_create_screen.dart';
-import 'package:elibrary_mobile/screens/book_details_screen.dart';
+import 'package:elibrary_mobile/screens/user_book_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -176,33 +175,58 @@ class _UserBooksScreenState extends State<UserBooksScreen> {
                   ),
                   const SizedBox(height: 8),
                   Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.white,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                              ),
-                              builder: (context) => SizedBox(
-                                height: MediaQuery.of(context).size.height * 0.9,
-                                child: BookDetailsScreen(book: book),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.info_outline),
-                          label: const Text("Detalji"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                          ),
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.white,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                            ),
+                            builder: (context) => SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.9,
+                              child: UserBookDetailsScreen(book: book),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.info_outline),
+                        label: const Text("Detalji"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BookCreateScreen(bookToEdit: book),
+                            ),
+                          );
+
+                          if (result == true) {
+                            _currentPage = 1;
+                            await _loadUserBooks();
+                          }
+                        },
+                        icon: const Icon(Icons.edit),
+                        label: const Text("Uredi"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
                 ],
               ),
             )
