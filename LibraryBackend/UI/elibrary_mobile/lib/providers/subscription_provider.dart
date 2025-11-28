@@ -6,4 +6,5 @@ class SubscriptionProvider extends BaseProvider<Subscription> {
 
   @override
   Subscription fromJson(data) => Subscription.fromJson(data);
+  
 }

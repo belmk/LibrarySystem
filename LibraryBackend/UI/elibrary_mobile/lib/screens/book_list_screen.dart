@@ -339,7 +339,6 @@ Widget _buildRecommendedSection() {
                                     ),
                                   );
                                 } else {
-                                  //user didn't review 
                                   showModalBottomSheet(
                                     context: context,
                                     isScrollControlled: true,

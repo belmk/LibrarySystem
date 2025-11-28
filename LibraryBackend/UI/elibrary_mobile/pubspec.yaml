@@ -40,6 +40,9 @@ dependencies:
   provider: ^6.1.5
   image_picker: ^1.0.7
   intl: ^0.20.2
+  webview_flutter: ^4.13.0
+  webview_flutter_wkwebview: ^3.23.0
+  webview_flutter_android: ^4.10.1
 
 dev_dependencies:
   flutter_test:

@@ -1,9 +1,14 @@
+import 'dart:convert';
+
+import 'package:elibrary_mobile/providers/base_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:elibrary_mobile/models/subscription.dart';
 import 'package:elibrary_mobile/providers/subscription_provider.dart';
 import 'package:elibrary_mobile/providers/auth_provider.dart';
 import 'package:elibrary_mobile/utils/datetime_helper.dart';
+import 'package:elibrary_mobile/screens/payment_screen.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -82,6 +87,92 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       ],
     );
   }
+void _openSubscriptionModal() {
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (context) {
+      final plans = [
+        {"id": 1, "label": "7 dana - 10 BAM", "price": 10.0, "days": 7},
+        {"id": 2, "label": "1 mjesec - 30 BAM", "price": 30.0, "days": 30},
+        {"id": 3, "label": "3 mjeseca - 50 BAM", "price": 50.0, "days": 90},
+      ];
+
+      Map<String, dynamic>? selectedPlan;
+
+      return StatefulBuilder(
+        builder: (context, setState) => Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Odaberite plan", style: TextStyle(fontSize: 18)),
+              const SizedBox(height: 16),
+
+              DropdownButtonFormField<Map<String, dynamic>>(
+                items: plans.map((plan) {
+                  return DropdownMenuItem<Map<String, dynamic>>(
+                    value: plan,
+                    child: Text(plan['label'].toString()),
+                  );
+                }).toList(),
+                onChanged: (Map<String, dynamic>? value) {
+                  setState(() => selectedPlan = value);
+                },
+                decoration: const InputDecoration(
+                  labelText: "Pretplata",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              ElevatedButton.icon(
+                icon: const Icon(Icons.payment),
+                label: const Text("Plati PayPalom"),
+                onPressed: selectedPlan == null
+                    ? null
+                    : () => _startPayPalPayment(selectedPlan!),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Future<void> _startPayPalPayment(Map<String, dynamic> plan) async {
+  final userId = context.read<AuthProvider>().currentUser!.id;
+
+  final response = await http.post(
+    Uri.parse("${BaseProvider.baseUrl}payments/create-paypal-order"),
+    headers: {"Content-Type": "application/json"},
+    body: jsonEncode({
+      "userId": userId,
+      "price": plan["price"],
+      "days": plan["days"],   
+    }),
+  );
+
+  print("URL: ${BaseProvider.baseUrl}payments/create-paypal-order");
+  print("Status code: ${response.statusCode}");
+  print("Body: ${response.body}");
+
+  final data = jsonDecode(response.body);
+
+  final approvalUrl = data["approvalUrl"];
+  final orderId = data["orderId"];
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => PayPalWebView(approvalUrl: approvalUrl, orderId: orderId),
+    ),
+  );
+}
 
   Widget _buildPaginationControls() {
     return Padding(
@@ -223,7 +314,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () {}, //TODO: Implement subscription paypal screen
+                          onPressed: _openSubscriptionModal,
                           icon: const Icon(Icons.subscriptions),
                           label: const Text("Pretplati se"),
                         ),

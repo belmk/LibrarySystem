@@ -63,6 +63,9 @@ builder.Services.AddAuthentication("BasicAuthentication")
        .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(
            "BasicAuthentication", null);
 
+builder.Services.AddHttpClient();
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
