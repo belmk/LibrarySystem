@@ -166,12 +166,16 @@ Future<void> _startPayPalPayment(Map<String, dynamic> plan) async {
   final approvalUrl = data["approvalUrl"];
   final orderId = data["orderId"];
 
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => PayPalWebView(approvalUrl: approvalUrl, orderId: orderId),
-    ),
-  );
+  await Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (_) => PayPalWebView(approvalUrl: approvalUrl, orderId: orderId),
+  ),
+);
+
+  _loadData();
+  setState(() {});
+
 }
 
   Widget _buildPaginationControls() {
@@ -338,7 +342,7 @@ Future<void> _startPayPalPayment(Map<String, dynamic> plan) async {
               style: TextStyle(fontSize: 18)),
           const SizedBox(height: 20),
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: _openSubscriptionModal,
             icon: const Icon(Icons.subscriptions),
             label: const Text("Pretplati se"),
           ),

@@ -1,4 +1,6 @@
 ﻿using Library.Models.DTOs.PayPal;
+using Library.Models.DTOs.Subscriptions;
+using Library.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System.Globalization;
@@ -11,12 +13,14 @@ using System.Text.Json;
 public class PaymentsController : ControllerBase
 {
     private readonly IConfiguration _config;
+    private readonly ISubscriptionService _subscriptionService;
     private readonly HttpClient _http;
 
-    public PaymentsController(IConfiguration config)
+    public PaymentsController(IConfiguration config, ISubscriptionService subscriptionService)
     {
         _config = config;
         _http = new HttpClient();
+        _subscriptionService = subscriptionService;
     }
 
     private async Task<string> GetAccessToken()
@@ -185,8 +189,11 @@ public class PaymentsController : ControllerBase
             if (captureResponse?.Status == "COMPLETED")
             {
                 Console.WriteLine("CAPTURE COMPLETED SUCCESSFULLY");
-                // TODO: Save subscription to database
-                // SaveSubscription(userId, days, price, captureResponse.Id);
+                var subscriptionData = new SubscriptionInsertDto
+                {
+                    StartDate = DateTime.Now,
+                    EndDate = DateTime.Now.AddDays(5),
+                };
             }
 
             return Ok(captureResponse);
