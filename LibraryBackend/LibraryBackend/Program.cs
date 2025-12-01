@@ -1,4 +1,5 @@
 using AutoMapper;
+using EasyNetQ;
 using Library.Services.Database;
 using Library.Services.Interfaces;
 using Library.Services.Mappings;
@@ -9,6 +10,58 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+string BuildRabbitConn(IConfiguration cfg)
+{
+    var fromSingle = cfg["RabbitMQ:ConnectionString"];
+    if (!string.IsNullOrWhiteSpace(fromSingle)) return fromSingle;
+
+    var host = cfg["Rabbit:Host"] ?? "localhost";
+    var user = cfg["Rabbit:User"] ?? "guest";
+    var pass = cfg["Rabbit:Pass"] ?? "guest";
+    var port = cfg["Rabbit:Port"];
+    var vhost = cfg["Rabbit:VirtualHost"];
+    var product = cfg["Rabbit:Product"]; // optional label
+    var name = cfg["Rabbit:Name"];    // optional label
+
+    var parts = new List<string>
+                {
+                    $"host={host}",
+                    $"username={user}",
+                    $"password={pass}",
+                    "publisherConfirms=true",
+                    "timeout=10"
+                };
+    if (!string.IsNullOrWhiteSpace(port)) parts.Add($"port={port}");
+    if (!string.IsNullOrWhiteSpace(vhost)) parts.Add($"virtualHost={vhost}");
+    if (!string.IsNullOrWhiteSpace(product)) parts.Add($"product={product}");
+    if (!string.IsNullOrWhiteSpace(name)) parts.Add($"name={name}");
+
+
+    return string.Join(";", parts);
+
+
+}
+
+var rabbitConn = BuildRabbitConn(builder.Configuration);
+
+Console.WriteLine($"RabbitMQ connection string: {rabbitConn}");
+
+// Optionally, log individual components for clarity
+Console.WriteLine($"Host: {builder.Configuration["Rabbit:Host"] ?? "localhost"}");
+Console.WriteLine($"User: {builder.Configuration["Rabbit:User"] ?? "guest"}");
+Console.WriteLine($"Pass: {builder.Configuration["Rabbit:Pass"] ?? "guest"}");
+Console.WriteLine($"Port: {builder.Configuration["Rabbit:Port"] ?? "default"}");
+Console.WriteLine($"VirtualHost: {builder.Configuration["Rabbit:VirtualHost"] ?? "/"}");
+Console.WriteLine($"Product label: {builder.Configuration["Rabbit:Product"] ?? "<none>"}");
+Console.WriteLine($"Name label: {builder.Configuration["Rabbit:Name"] ?? "<none>"}");
+
+
+builder.Services.AddSingleton<IBus>(_ =>
+    RabbitHutch.CreateBus(rabbitConn, cfg => cfg.EnableSystemTextJson())
+);
+
 
 // Add services to the container.
 builder.Services.AddTransient<IBookService, BookService>();
@@ -75,6 +128,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
@@ -82,4 +136,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var db = services.GetRequiredService<LibraryDbContext>();
+    await db.Database.MigrateAsync();
+}
 app.Run();

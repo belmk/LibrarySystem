@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+
+  webapi:
+    build:
+      context: .
+      dockerfile: LibraryBackend/Dockerfile
+    container_name: webapi
+    depends_on:
+      - sqlserver
+    environment:
+      # SQL Server connection from .env
+      - ConnectionStrings__DefaultConnection=${ConnectionStrings__DefaultConnection}
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    restart: unless-stopped
+
+  subscriber:
+    build:
+      context: .
+      dockerfile: Library.Subscriber/Dockerfile
+    container_name: subscriber
+    depends_on:
+      - rabbitmq
+      - sqlserver
+    environment:
+      # RabbitMQ connection from .env
+      - RabbitMQ__Host=${Rabbit__Host}
+      - RabbitMQ__Username=${Rabbit__User}
+      - RabbitMQ__Password=${Rabbit__Pass}
+      - RabbitMQ__VirtualHost=${Rabbit__VirtualHost}
+      - RabbitMQ__Port=${Rabbit__Port}
+
+      # SMTP settings from .env
+      - SMTP__Host=${Smtp__Host}
+      - SMTP__Port=${Smtp__Port}
+      - SMTP__Username=${Smtp__User}
+      - SMTP__Password=${Smtp__Pass}
+      - SMTP__UseStartTls=${Smtp__UseStartTls}
+
+      # Email settings from .env
+      - Email__From=${Email__From}
+      - Email__Subject=${Email__Subject}
+
+
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"     # AMQP for apps (EasyNetQ connects here)
+      - "15672:15672"   # RabbitMQ Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=${Rabbit__User}
+      - RABBITMQ_DEFAULT_PASS=${Rabbit__Pass}
+      - RABBITMQ_DEFAULT_VHOST=${Rabbit__VirtualHost}
+    restart: unless-stopped
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${SA_PASSWORD}  
+    ports:
+      - "1433:1433"
+    restart: unless-stopped
+
+networks:
+  default:
+    name: library_network
