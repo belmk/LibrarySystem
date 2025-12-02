@@ -8,10 +8,17 @@ services:
       dockerfile: LibraryBackend/Dockerfile
     container_name: webapi
     depends_on:
-      - sqlserver
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
-      # SQL Server connection from .env
-      - ConnectionStrings__DefaultConnection=${ConnectionStrings__DefaultConnection}
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__DefaultConnection: ${ConnectionStrings__DefaultConnection}
+      Rabbit__Host: ${Rabbit__Host}
+      Rabbit__Username: ${Rabbit__User}
+      Rabbit__Password: ${Rabbit__Pass}
     ports:
       - "8080:8080"
       - "8081:8081"
@@ -23,27 +30,25 @@ services:
       dockerfile: Library.Subscriber/Dockerfile
     container_name: subscriber
     depends_on:
-      - rabbitmq
-      - sqlserver
+      rabbitmq:
+        condition: service_healthy
+      sqlserver:
+        condition: service_started
     environment:
-      # RabbitMQ connection from .env
       - RabbitMQ__Host=${Rabbit__Host}
       - RabbitMQ__Username=${Rabbit__User}
       - RabbitMQ__Password=${Rabbit__Pass}
       - RabbitMQ__VirtualHost=${Rabbit__VirtualHost}
       - RabbitMQ__Port=${Rabbit__Port}
 
-      # SMTP settings from .env
       - SMTP__Host=${Smtp__Host}
       - SMTP__Port=${Smtp__Port}
-      - SMTP__Username=${Smtp__User}
-      - SMTP__Password=${Smtp__Pass}
+      - SMTP__User=${Smtp__User}
+      - SMTP__Pass=${Smtp__Pass}
       - SMTP__UseStartTls=${Smtp__UseStartTls}
 
-      # Email settings from .env
       - Email__From=${Email__From}
       - Email__Subject=${Email__Subject}
-
 
     restart: unless-stopped
 
@@ -57,6 +62,10 @@ services:
       - RABBITMQ_DEFAULT_USER=${Rabbit__User}
       - RABBITMQ_DEFAULT_PASS=${Rabbit__Pass}
       - RABBITMQ_DEFAULT_VHOST=${Rabbit__VirtualHost}
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmqctl status"]
+      interval: 5s
+      retries: 5
     restart: unless-stopped
 
   sqlserver:
@@ -67,6 +76,11 @@ services:
       - SA_PASSWORD=${SA_PASSWORD}  
     ports:
       - "1433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "grep -qi 'SQL Server is now ready' /var/opt/mssql/log/errorlog*"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
 networks:

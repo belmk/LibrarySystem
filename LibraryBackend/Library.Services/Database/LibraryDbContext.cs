@@ -33,53 +33,6 @@ namespace Library.Services.Database
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Role>(entity =>
-            {
-                entity.HasData(
-                    new Role { Id = 3, Name = "Admin" },
-                    new Role { Id = 4, Name = "User"}
-                    );
-            });
-
-            modelBuilder.Entity<Author>().HasData(
-                new Author { Id = 1, FirstName = "George", LastName = "Orwell" },
-                new Author { Id = 2, FirstName = "J.K.", LastName = "Rowling"}
-            );
-
-            modelBuilder.Entity<Genre>().HasData(
-                new Genre { Id = 1, Name = "Dystopian" },
-                new Genre { Id = 2, Name = "Fantasy" }
-            );
-
-            modelBuilder.Entity<Book>().HasData(
-                new Book
-                {
-                    Id = 1,
-                    AuthorId = 1,
-                    Title = "1984",
-                    Description = "Dystopian novel about surveillance.",
-                    PageNumber = 328,
-                    AvailableNumber = 5
-                },
-                new Book
-                {
-                    Id = 2,
-                    AuthorId = 2,
-                    Title = "Harry Potter and the Philosopher's Stone",
-                    Description = "Fantasy novel about a young wizard.",
-                    PageNumber = 309,
-                    AvailableNumber = 8
-                }
-            );
-
-            modelBuilder.Entity<Book>()
-                .HasMany(b => b.Genres)
-                .WithMany(g => g.Books)
-                .UsingEntity(j => j.HasData(
-                    new { BooksId = 1, GenresId = 1 },
-                    new { BooksId = 2, GenresId = 2 }  
-                ));
-
             modelBuilder.Entity<Complaint>()
                 .HasOne(c => c.Sender)
                 .WithMany()

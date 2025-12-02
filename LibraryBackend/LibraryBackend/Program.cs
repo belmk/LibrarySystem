@@ -82,6 +82,8 @@ builder.Services.AddTransient<IDashboardService, DashboardService>();
 builder.Services.AddTransient<IUserReviewService, UserReviewService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 
+builder.Services.AddScoped<DatabaseSeeder>();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -135,11 +137,17 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+Console.WriteLine("DB: " + builder.Configuration.GetConnectionString("DefaultConnection"));
 
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var db = services.GetRequiredService<LibraryDbContext>();
     await db.Database.MigrateAsync();
+
+    Console.WriteLine("Migration finished. Seeding data...");
+    var seeder = services.GetRequiredService<DatabaseSeeder>();
+    seeder.Seed();
 }
+
 app.Run();

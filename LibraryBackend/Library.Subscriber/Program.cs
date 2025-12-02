@@ -28,11 +28,12 @@ var smtp = builder.Configuration.GetSection("Smtp").Get<SmtpOptions>()
 if (string.IsNullOrWhiteSpace(smtp.Host)) throw new ArgumentException("Smtp__Host is required.");
 if (smtp.Port <= 0) throw new ArgumentException("Smtp__Port is required.");
 
-var rabbitHost = builder.Configuration["Rabbit:Host"] ?? "localhost";
-var rabbitUser = builder.Configuration["Rabbit:User"] ?? "guest";
-var rabbitPass = builder.Configuration["Rabbit:Pass"] ?? "guest";
-var rabbitPort = builder.Configuration["Rabbit:Port"];        // optional
-var rabbitVh = builder.Configuration["Rabbit:VirtualHost"]; // optional
+var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+var rabbitUser = builder.Configuration["RabbitMQ:Username"] ?? "guest";
+var rabbitPass = builder.Configuration["RabbitMQ:Password"] ?? "guest";
+var rabbitPort = builder.Configuration["RabbitMQ:Port"];
+var rabbitVh = builder.Configuration["RabbitMQ:VirtualHost"];
+
 
 var parts = new List<string> { $"host={rabbitHost}", $"username={rabbitUser}", $"password={rabbitPass}" };
 if (!string.IsNullOrWhiteSpace(rabbitPort)) parts.Add($"port={rabbitPort}");
