@@ -111,42 +111,152 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
 Future<void> _generateReport() async {
+  // Fetch all data
+  final topBooks = await _provider.getTopBorrowedBooks(_topX);
+  final topUsers = await _provider.getTopActiveUsers(_topX);
+  final topRatedBooks = await _provider.getTopRatedBooks(_topX);
+  final topRatedUsers = await _provider.getTopRatedUsers(_topX);
   final borrowStats = await _provider.getBorrowStats(_lastXMonths);
   final profitStats = await _provider.getProfitStats(_lastXMonths);
 
   final pdf = pw.Document();
 
+  // Common table style
+  final tableHeaderStyle = pw.TextStyle(
+    fontWeight: pw.FontWeight.bold,
+    fontSize: 12,
+  );
+
+  final tableCellStyle = pw.TextStyle(
+    fontSize: 11,
+  );
+
   pdf.addPage(
-    pw.Page(
-      build: (context) => pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text('Izvjestaj za zadnjih $_lastXMonths mjeseci',
-              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-          pw.SizedBox(height: 16),
-          pw.Text('Broj posudbi po mjesecima:'),
-          pw.Table.fromTextArray(
-            headers: ['Mjesec', 'Posudbi'],
-            data: borrowStats.map((e) => [e.month, e.count.toString()]).toList(),
+    pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(20),
+      build: (context) => [
+        pw.Center(
+          child: pw.Text(
+            'Izvjestaj Dashboarda',
+            style: pw.TextStyle(
+              fontSize: 22,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
-          pw.SizedBox(height: 20),
-          pw.Text('Zarade po mjesecima:'),
-          pw.Table.fromTextArray(
-            headers: ['Mjesec', 'Zarada'],
-            data: profitStats.map((e) => [e.month, e.count.toString()]).toList(),
-          ),
-        ],
-      ),
+        ),
+        pw.SizedBox(height: 10),
+        pw.Text(
+          'Datum: ${DateFormat('dd/MM/yyyy').format(DateTime.now())}',
+          style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey),
+        ),
+        pw.Divider(height: 20, thickness: 2),
+
+        // Top Borrowed Books
+        pw.Text('Top $_topX najposudjenijih knjiga',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 8),
+        _buildTable(
+          headers: ['Knjiga', 'Posudbi'],
+          data: topBooks.map((e) => [e.title, e.loanCount.toString()]).toList(),
+          headerStyle: tableHeaderStyle,
+          cellStyle: tableCellStyle,
+        ),
+        pw.SizedBox(height: 15),
+
+        // Top Active Users
+        pw.Text('Top $_topX najaktivnijih korisnika',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 8),
+        _buildTable(
+          headers: ['Korisnik', 'Posudio knjiga'],
+          data: topUsers.map((e) => [e.username, e.loanCount.toString()]).toList(),
+          headerStyle: tableHeaderStyle,
+          cellStyle: tableCellStyle,
+        ),
+        pw.SizedBox(height: 15),
+
+        // Top Rated Books
+        pw.Text('Top $_topX ocijenjenih knjiga',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 8),
+        _buildTable(
+          headers: ['Knjiga', 'Ocjena (broj ocjena)'],
+          data: topRatedBooks
+              .map((e) => ['${e.name} (${e.totalRatings})', e.avgRating.toStringAsFixed(2)])
+              .toList(),
+          headerStyle: tableHeaderStyle,
+          cellStyle: tableCellStyle,
+        ),
+        pw.SizedBox(height: 15),
+
+        // Top Rated Users
+        pw.Text('Top $_topX ocijenjenih korisnika',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 8),
+        _buildTable(
+          headers: ['Korisnik', 'Ocjena (broj ocjena)'],
+          data: topRatedUsers
+              .map((e) => ['${e.name} (${e.totalRatings})', e.avgRating.toStringAsFixed(2)])
+              .toList(),
+          headerStyle: tableHeaderStyle,
+          cellStyle: tableCellStyle,
+        ),
+        // Let MultiPage automatically break pages if needed
+
+        // Borrow Stats
+        pw.Text('Broj posudbi u zadnjih $_lastXMonths mjeseci',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 8),
+        _buildTable(
+          headers: ['Mjesec', 'Posudbi'],
+          data: borrowStats.map((e) => [e.month, e.count.toString()]).toList(),
+          headerStyle: tableHeaderStyle,
+          cellStyle: tableCellStyle,
+        ),
+        pw.SizedBox(height: 15),
+
+        // Profit Stats
+        pw.Text('Zarade u zadnjih $_lastXMonths mjeseci',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 8),
+        _buildTable(
+          headers: ['Mjesec', 'Zarada'],
+          data: profitStats.map((e) => [e.month, e.count.toString()]).toList(),
+          headerStyle: tableHeaderStyle,
+          cellStyle: tableCellStyle,
+        ),
+      ],
     ),
   );
 
   final pdfBytes = await pdf.save();
-
   await Printing.sharePdf(
     bytes: pdfBytes,
-    filename: 'Izvjestaj_${DateTime.now().year}_${DateTime.now().month}.pdf',
+    filename: 'Dashboard_Izvjestaj_${DateTime.now().year}_${DateTime.now().month}.pdf',
   );
 }
+
+/// Helper function for table creation
+pw.Widget _buildTable({
+  required List<String> headers,
+  required List<List<String>> data,
+  required pw.TextStyle headerStyle,
+  required pw.TextStyle cellStyle,
+}) {
+  return pw.Table.fromTextArray(
+    border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+    headerDecoration: pw.BoxDecoration(color: PdfColors.grey200),
+    headerHeight: 25,
+    cellHeight: 22,
+    headerStyle: headerStyle,
+    cellStyle: cellStyle,
+    headers: headers,
+    data: data,
+    cellAlignments: {for (var i = 0; i < headers.length; i++) i: pw.Alignment.centerLeft},
+  );
+}
+
 
 
 

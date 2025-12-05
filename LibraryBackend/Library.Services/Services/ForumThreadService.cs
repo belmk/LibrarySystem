@@ -19,14 +19,22 @@ namespace Library.Services.Services
     public class ForumThreadService : BaseCRUDService<ForumThreadDto, ForumThread, ForumThreadSearchObject, ForumThreadInsertDto, ForumThreadUpdateDto>, IForumThreadService
     {
         private readonly IActivityService _activityService;
+        private readonly IBookService _bookService;
 
-        public ForumThreadService(LibraryDbContext context, IMapper mapper, IActivityService activityService) : base(context, mapper) 
+        public ForumThreadService(LibraryDbContext context, IMapper mapper, IActivityService activityService, IBookService bookService) : base(context, mapper) 
         { 
             _activityService = activityService;
+            _bookService = bookService;
         }
 
         public override async Task BeforeInsert(ForumThread entity, ForumThreadInsertDto insert)
         {
+            var book = await _context.Books
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.Id == insert.BookId);
+
+            entity.Book = book;
+
             await base.BeforeInsert(entity, insert);
 
             var activity = new ActivityInsertDto

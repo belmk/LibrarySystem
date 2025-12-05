@@ -95,9 +95,9 @@ void _openSubscriptionModal() {
     ),
     builder: (context) {
       final plans = [
-        {"id": 1, "label": "7 dana - 10 BAM", "price": 10.0, "days": 7},
-        {"id": 2, "label": "1 mjesec - 30 BAM", "price": 30.0, "days": 30},
-        {"id": 3, "label": "3 mjeseca - 50 BAM", "price": 50.0, "days": 90},
+        {"id": 1, "label": "7 dana - 10 €", "price": 10.0, "days": 7},
+        {"id": 2, "label": "1 mjesec - 30 €", "price": 30.0, "days": 30},
+        {"id": 3, "label": "3 mjeseca - 50 €", "price": 50.0, "days": 90},
       ];
 
       Map<String, dynamic>? selectedPlan;

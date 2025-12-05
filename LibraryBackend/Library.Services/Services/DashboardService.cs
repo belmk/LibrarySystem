@@ -63,12 +63,16 @@ namespace Library.Services.Services
 
         public async Task<List<RatingStatsDto>> GetTopRatedUsersAsync(int count)
         {
-            return await _context.BookReviews
+            return await _context.UserReviews
                 .Where(r => r.IsApproved && !r.IsDenied)
-                .GroupBy(r => r.User.Username)
+                .GroupBy(r => new
+                {
+                    r.ReviewedUserId,
+                    r.ReviewedUser.Username
+                })
                 .Select(g => new RatingStatsDto
                 {
-                    Name = g.Key,
+                    Name = g.Key.Username,
                     AvgRating = g.Average(r => r.Rating),
                     TotalRatings = g.Count()
                 })
@@ -77,6 +81,7 @@ namespace Library.Services.Services
                 .Take(count)
                 .ToListAsync();
         }
+
 
         public async Task<List<MonthlyRevenueDto>> GetBorrowsLastXMonthsAsync(int months)
         {

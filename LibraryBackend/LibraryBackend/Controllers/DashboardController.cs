@@ -1,9 +1,11 @@
 ﻿using Library.Models.DTOs.DashboardData;
 using Library.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryBackend.Controllers
 {
+    [Authorize(Policy = "AdminOnly")]
     [ApiController]
     [Route("api/[controller]")]
     public class DashboardController : ControllerBase
