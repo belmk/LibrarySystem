@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:elibrary_mobile/providers/base_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -33,6 +32,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     _loadData();
   }
 
+
   void _loadData() {
     final authProvider = context.read<AuthProvider>();
     final user = authProvider.currentUser;
@@ -59,6 +59,24 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       return res.result;
     });
   }
+
+ 
+  bool hasActiveSubscription(List<Subscription> subs) {
+    if (subs.isEmpty) return false;
+
+    final now = DateTime.now();
+
+    subs.sort((a, b) => b.endDate!.compareTo(a.endDate!));
+
+    final latest = subs.first;
+
+    if (latest.startDate == null || latest.endDate == null) return false;
+
+    return now.isAfter(latest.startDate!) && now.isBefore(latest.endDate!) ||
+        now.isAtSameMomentAs(latest.startDate!) ||
+        now.isAtSameMomentAs(latest.endDate!);
+  }
+
 
   int calculateTotalDays(List<Subscription> subs) {
     int totalDays = 0;
@@ -87,96 +105,100 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       ],
     );
   }
-void _openSubscriptionModal() {
-  showModalBottomSheet(
-    context: context,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
-    builder: (context) {
-      final plans = [
-        {"id": 1, "label": "7 dana - 10 €", "price": 10.0, "days": 7},
-        {"id": 2, "label": "1 mjesec - 30 €", "price": 30.0, "days": 30},
-        {"id": 3, "label": "3 mjeseca - 50 €", "price": 50.0, "days": 90},
-      ];
 
-      Map<String, dynamic>? selectedPlan;
 
-      return StatefulBuilder(
-        builder: (context, setState) => Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text("Odaberite plan", style: TextStyle(fontSize: 18)),
-              const SizedBox(height: 16),
+  void _openSubscriptionModal() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        final plans = [
+          {"id": 1, "label": "7 dana - 10 €", "price": 10.0, "days": 7},
+          {"id": 2, "label": "1 mjesec - 30 €", "price": 30.0, "days": 30},
+          {"id": 3, "label": "3 mjeseca - 50 €", "price": 50.0, "days": 90},
+        ];
 
-              DropdownButtonFormField<Map<String, dynamic>>(
-                items: plans.map((plan) {
-                  return DropdownMenuItem<Map<String, dynamic>>(
-                    value: plan,
-                    child: Text(plan['label'].toString()),
-                  );
-                }).toList(),
-                onChanged: (Map<String, dynamic>? value) {
-                  setState(() => selectedPlan = value);
-                },
-                decoration: const InputDecoration(
-                  labelText: "Pretplata",
-                  border: OutlineInputBorder(),
+        Map<String, dynamic>? selectedPlan;
+
+        return StatefulBuilder(
+          builder: (context, setState) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text("Odaberite plan", style: TextStyle(fontSize: 18)),
+                const SizedBox(height: 16),
+
+                DropdownButtonFormField<Map<String, dynamic>>(
+                  items: plans.map((plan) {
+                    return DropdownMenuItem<Map<String, dynamic>>(
+                      value: plan,
+                      child: Text(plan['label'].toString()),
+                    );
+                  }).toList(),
+                  onChanged: (Map<String, dynamic>? value) {
+                    setState(() => selectedPlan = value);
+                  },
+                  decoration: const InputDecoration(
+                    labelText: "Pretplata",
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              ElevatedButton.icon(
-                icon: const Icon(Icons.payment),
-                label: const Text("Plati PayPalom"),
-                onPressed: selectedPlan == null
-                    ? null
-                    : () => _startPayPalPayment(selectedPlan!),
-              ),
-            ],
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.payment),
+                  label: const Text("Plati PayPalom"),
+                  onPressed: selectedPlan == null
+                      ? null
+                      : () => _startPayPalPayment(selectedPlan!),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
-Future<void> _startPayPalPayment(Map<String, dynamic> plan) async {
-  final userId = context.read<AuthProvider>().currentUser!.id;
 
-  final response = await http.post(
-    Uri.parse("${BaseProvider.baseUrl}payments/create-paypal-order"),
-    headers: {"Content-Type": "application/json"},
-    body: jsonEncode({
-      "userId": userId,
-      "price": plan["price"],
-      "days": plan["days"],   
-    }),
-  );
+  Future<void> _startPayPalPayment(Map<String, dynamic> plan) async {
+    final userId = context.read<AuthProvider>().currentUser!.id;
 
-  print("URL: ${BaseProvider.baseUrl}payments/create-paypal-order");
-  print("Status code: ${response.statusCode}");
-  print("Body: ${response.body}");
+    final response = await http.post(
+      Uri.parse("${BaseProvider.baseUrl}payments/create-paypal-order"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "userId": userId,
+        "price": plan["price"],
+        "days": plan["days"],
+      }),
+    );
 
-  final data = jsonDecode(response.body);
+    print("URL: ${BaseProvider.baseUrl}payments/create-paypal-order");
+    print("Status code: ${response.statusCode}");
+    print("Body: ${response.body}");
 
-  final approvalUrl = data["approvalUrl"];
-  final orderId = data["orderId"];
+    final data = jsonDecode(response.body);
 
-  await Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (_) => PayPalWebView(approvalUrl: approvalUrl, orderId: orderId),
-  ),
-);
+    final approvalUrl = data["approvalUrl"];
+    final orderId = data["orderId"];
 
-  _loadData();
-  setState(() {});
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            PayPalWebView(approvalUrl: approvalUrl, orderId: orderId),
+      ),
+    );
 
-}
+    _loadData();
+    setState(() {});
+  }
+
 
   Widget _buildPaginationControls() {
     return Padding(
@@ -208,6 +230,7 @@ Future<void> _startPayPalPayment(Map<String, dynamic> plan) async {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     final currentUser = context.watch<AuthProvider>().currentUser;
@@ -234,6 +257,7 @@ Future<void> _startPayPalPayment(Map<String, dynamic> plan) async {
                 final subs = snapshot.data!;
                 final totalDays = calculateTotalDays(subs);
                 final totalMoney = calculateTotalMoney(subs);
+                final active = hasActiveSubscription(subs);
 
                 return Padding(
                   padding: const EdgeInsets.all(16),
@@ -303,8 +327,7 @@ Future<void> _startPayPalPayment(Map<String, dynamic> plan) async {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          const Icon(Icons.attach_money,
-                              color: Colors.green),
+                          const Icon(Icons.attach_money, color: Colors.green),
                           const SizedBox(width: 8),
                           Text(
                             "Ukupno potrošeno: ${totalMoney.toStringAsFixed(2)} KM",
@@ -318,9 +341,13 @@ Future<void> _startPayPalPayment(Map<String, dynamic> plan) async {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: _openSubscriptionModal,
+                          onPressed: active ? null : _openSubscriptionModal,
                           icon: const Icon(Icons.subscriptions),
-                          label: const Text("Pretplati se"),
+                          label: Text(
+                            active
+                                ? "Već ste pretplaćeni"
+                                : "Pretplati se",
+                          ),
                         ),
                       ),
                     ],
@@ -330,6 +357,7 @@ Future<void> _startPayPalPayment(Map<String, dynamic> plan) async {
             ),
     );
   }
+
 
   Widget _buildEmptyView() {
     return Center(

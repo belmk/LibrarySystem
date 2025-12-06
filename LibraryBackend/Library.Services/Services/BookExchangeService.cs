@@ -61,6 +61,11 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.ReceiverUserId == search.ReceiverUserId);
             }
 
+            if (search?.BookExchangeStatus == null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.BookExchangeStatus != BookExchangeStatus.PendingApproval);
+            }
+
             return filteredQuery;
         }
 
@@ -85,8 +90,8 @@ namespace Library.Services.Services
 
             if (offerAction == true && receiverAction == true && entity.BookExchangeStatus == BookExchangeStatus.BookReceivingPhase) // exchange complete
             {
-                update.OfferUserAction = false;
-                update.ReceiverUserAction = false;
+                update.OfferUserAction = true;
+                update.ReceiverUserAction = true;
                 update.BookExchangeStatus = BookExchangeStatus.ExchangeCompleted;
             }
 

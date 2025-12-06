@@ -40,6 +40,28 @@ namespace Library.Services.Services
                 filteredQuery = filteredQuery.Where(x => x.ReviewerUserId == search.ReviewerUserId);
             }
 
+            if (!String.IsNullOrWhiteSpace(search?.Email))
+            {
+                filteredQuery = filteredQuery.Where(x => x.ReviewedUser.Email.ToLower().Contains(search.Email.ToLower())
+                                                    || x.ReviewerUser.Email.ToLower().Contains(search.Email.ToLower()));
+            }
+
+            if (!String.IsNullOrWhiteSpace(search?.Username))
+            {
+                filteredQuery = filteredQuery.Where(x => x.ReviewedUser.Username.ToLower().Contains(search.Username.ToLower())
+                                                         || x.ReviewerUser.Username.ToLower().Contains(search.Username.ToLower()));
+            }
+
+            if(search?.IsApproved != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.IsApproved ==  search.IsApproved);
+            }
+
+            if (search?.IsDenied != null)
+            {
+                filteredQuery = filteredQuery.Where(x => x.IsDenied== search.IsDenied);
+            }
+
             return filteredQuery;
         }
 

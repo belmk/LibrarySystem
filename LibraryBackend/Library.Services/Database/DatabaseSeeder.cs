@@ -30,6 +30,7 @@ namespace Library.Services.Database
             AddSubscriptions();
             AddUserReviews();
             AddBookLoans();
+            AddUserBooks();
         }
 
         private void AddRoles()
@@ -514,6 +515,49 @@ namespace Library.Services.Database
                     _context.BookLoans.AddRange(bookLoansToAdd);
                     _context.SaveChanges();
                 }
+            }
+        }
+
+        private void AddUserBooks()
+        {
+            if (!_context.Books.Any(b => b.IsUserBook))
+            {
+                var users = _context.Users.ToList();
+                if (!users.Any())
+                    return;
+
+                var random = new Random();
+                var userBooksToAdd = new List<Book>();
+
+                int numberOfUserBooks = Math.Min(3, users.Count);
+
+                for (int i = 0; i < numberOfUserBooks; i++)
+                {
+                    var user = users[random.Next(users.Count)];
+
+                    var author = _context.Authors.OrderBy(a => Guid.NewGuid()).FirstOrDefault();
+                    if (author == null)
+                        return;
+
+                    var userBook = new Book
+                    {
+                        Title = $"Korisnička knjiga {i + 1}",
+                        Description = "Ovo je knjiga dodana od strane korisnika.",
+                        PageNumber = random.Next(50, 500),
+                        AvailableNumber = 1,
+                        AuthorId = author.Id, 
+                        IsUserBook = true,
+                        UserId = user.Id,
+                        CoverImage = null,
+                        CoverImageContentType = null
+                    };
+
+
+                    userBooksToAdd.Add(userBook);
+                }
+
+                _context.Books.AddRange(userBooksToAdd);
+                _context.SaveChanges();
             }
         }
 

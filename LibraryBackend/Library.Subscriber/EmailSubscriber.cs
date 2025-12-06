@@ -85,7 +85,7 @@ public sealed class EmailSubscriber : BackgroundService
         var mime = new MimeMessage();
 
         var fromDisplay = string.IsNullOrWhiteSpace(_email.From)
-            ? $"RestoraNow <{_smtp.User}>"
+            ? $"eLibrary <{_smtp.User}>"
             : _email.From;
 
         try { mime.From.Add(MailboxAddress.Parse(fromDisplay)); }
@@ -110,8 +110,6 @@ public sealed class EmailSubscriber : BackgroundService
                         <p>Hvala što ste se registrovali u <strong>eLibrary</strong>.</p>
                         <p>Sada se možete prijaviti koristeći mobilnu aplikaciju.</p>
                         <p style=""color:#666"">Ako niste tražili ovu registraciju, možete ignorisati ovaj email.</p>
-                        {(string.IsNullOrWhiteSpace(msg.ActivateUrl) ? "" :
-                                  $"<p><a href=\"{msg.ActivateUrl}\">Aktivirajte svoj račun</a></p>")}
                     </body>
                 </html>"
                 };

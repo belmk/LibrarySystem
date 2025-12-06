@@ -64,8 +64,10 @@ services:
       - RABBITMQ_DEFAULT_VHOST=${Rabbit__VirtualHost}
     healthcheck:
       test: ["CMD-SHELL", "rabbitmqctl status"]
-      interval: 5s
-      retries: 5
+      interval: 10s     
+      timeout: 10s       
+      retries: 20        
+      start_period: 30s
     restart: unless-stopped
 
   sqlserver:

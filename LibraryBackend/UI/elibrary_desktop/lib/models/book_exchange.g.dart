@@ -52,6 +52,8 @@ Map<String, dynamic> _$BookExchangeToJson(BookExchange instance) =>
     };
 
 const _$BookExchangeStatusEnumMap = {
-  BookExchangeStatus.BookDeliveryPhase: 0,
-  BookExchangeStatus.BookReceivingPhase: 1,
+  BookExchangeStatus.PendingApproval: 0,
+  BookExchangeStatus.BookDeliveryPhase: 1,
+  BookExchangeStatus.BookReceivingPhase: 2,
+  BookExchangeStatus.ExchangeCompleted: 3,
 };

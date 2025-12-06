@@ -9,6 +9,8 @@ namespace Library.Models.SearchObjects
 {
     public class UserReviewSearchObject : BaseSearchObject
     {
+        public string? Username { get; set; }
+        public string? Email { get; set; }
         public int? ReviewerUserId { get; set; }
         public int? ReviewedUserId { get; set; }
         public int? Id { get; set; }
