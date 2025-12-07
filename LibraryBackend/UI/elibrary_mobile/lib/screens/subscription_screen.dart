@@ -292,11 +292,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                   children: [
                                     _iconRow(
                                         Icons.calendar_month,
-                                        "Od ${DateTimeHelper.formatDate(s.startDate)}"),
+                                        "Od ${DateTimeHelper.formatDateOnly(s.startDate)}"),
                                     const SizedBox(height: 8),
                                     _iconRow(
                                         Icons.cancel,
-                                        "Do ${DateTimeHelper.formatDate(s.endDate)}"),
+                                        "Do ${DateTimeHelper.formatDateOnly(s.endDate)}"),
                                     const SizedBox(height: 8),
                                     _iconRow(
                                         Icons.payments,

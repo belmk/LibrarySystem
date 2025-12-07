@@ -84,7 +84,7 @@ class _PayPalWebViewState extends State<PayPalWebView> {
     print("Checking PayPal order status...");
 
     final res = await http.get(
-      Uri.parse("http://10.0.2.2:7268/payments/check-paypal-order/$orderId"),
+      Uri.parse("http://10.0.2.2:8080/payments/check-paypal-order/$orderId"),
     );
 
     print("Verify response: ${res.body}");
@@ -110,7 +110,7 @@ class _PayPalWebViewState extends State<PayPalWebView> {
       print("Attempting to capture PayPal order: $orderId");
 
       final response = await http.post(
-        Uri.parse("http://10.0.2.2:7268/payments/capture-paypal-order/$orderId"),
+        Uri.parse("http://10.0.2.2:8080/payments/capture-paypal-order/$orderId"),
         headers: {"Content-Type": "application/json"},
       );
 

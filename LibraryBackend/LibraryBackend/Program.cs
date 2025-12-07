@@ -82,7 +82,9 @@ builder.Services.AddTransient<IDashboardService, DashboardService>();
 builder.Services.AddTransient<IUserReviewService, UserReviewService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 
-builder.Services.AddScoped<DatabaseSeeder>();
+builder.Services.AddScoped<DatabaseSeeder>(); 
+builder.Services.AddScoped<IRecommenderService, RecommenderService>();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -6,11 +6,13 @@ import 'package:elibrary_mobile/providers/book_review_provider.dart';
 import 'package:elibrary_mobile/providers/complaint_provider.dart';
 import 'package:elibrary_mobile/providers/genre_provider.dart';
 import 'package:elibrary_mobile/providers/notification_provider.dart';
+import 'package:elibrary_mobile/providers/recommendation_provider.dart';
 import 'package:elibrary_mobile/providers/subscription_provider.dart';
 import 'package:elibrary_mobile/providers/user_provider.dart';
 import 'package:elibrary_mobile/providers/user_review_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/base_provider.dart';
@@ -53,6 +55,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BookExchangeProvider()),
         ChangeNotifierProvider(create: (_) => ComplaintProvider()),
         ChangeNotifierProvider(create: (_) => UserReviewProvider()),
+        ChangeNotifierProvider(create: (_) => RecommenderProvider(http.Client())),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

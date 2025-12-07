@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:elibrary_mobile/models/book.dart';
 import 'package:elibrary_mobile/models/book_review.dart';
-import 'package:elibrary_mobile/models/book_loan.dart';
 import 'package:elibrary_mobile/models/book_loan_status.dart';
 import 'package:elibrary_mobile/models/search_result.dart';
 import 'package:elibrary_mobile/providers/book_review_provider.dart';
 import 'package:elibrary_mobile/providers/book_loan_provider.dart';
 import 'package:elibrary_mobile/providers/auth_provider.dart';
+import 'package:elibrary_mobile/providers/subscription_provider.dart';
+import 'package:elibrary_mobile/utils/datetime_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,6 +24,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   late BookReviewProvider _bookReviewProvider;
   late BookLoanProvider _bookLoanProvider;
   late AuthProvider _authProvider;
+  late SubscriptionProvider _subscriptionProvider;
 
   SearchResult<BookReview>? _reviewResult;
   bool _isLoading = true;
@@ -32,6 +34,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   int _pageSize = 5;
   int _totalCount = 0;
   bool _hasActiveLoan = false;
+  bool _hasActiveSubscription = false;
 
   int get _totalPages => _totalCount > 0 ? (_totalCount / _pageSize).ceil() : 1;
   double? _averageRating;
@@ -42,6 +45,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     _bookReviewProvider = context.read<BookReviewProvider>();
     _bookLoanProvider = context.read<BookLoanProvider>();
     _authProvider = context.read<AuthProvider>();
+    _subscriptionProvider = context.read<SubscriptionProvider>();
     _initializeData();
   }
 
@@ -49,6 +53,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     await Future.wait([
       _loadReviews(),
       _checkExistingLoan(),
+      _checkSubscription(),
     ]);
   }
 
@@ -75,6 +80,32 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       });
     } catch (e) {
       debugPrint("Failed to check existing loan: $e");
+    }
+  }
+
+  Future<void> _checkSubscription() async {
+    final userId = _authProvider.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      final filter = {
+        "userId": userId,
+      };
+
+      final result = await _subscriptionProvider.get(filter: filter);
+      final subs = result.result ?? [];
+      final now = DateTime.now();
+
+      final active = subs.any((s) {
+        final start = s.startDate;
+        final end = s.endDate;
+        if (start == null || end == null) return false;
+        return start.isBefore(now) && end.isAfter(now);
+      });
+
+      setState(() => _hasActiveSubscription = active);
+    } catch (e) {
+      debugPrint("Failed to check subscription: $e");
     }
   }
 
@@ -264,22 +295,41 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         ),
         const Divider(height: 30),
         const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _hasActiveLoan ? null : _sendLoanRequest,
-            icon: const Icon(Icons.send),
-            label: Text(
-              _hasActiveLoan
-                  ? "Zahtjev već postoji"
-                  : "Pošalji zahtjev za posudbu",
+
+        // -------------------------
+        // SUBSCRIPTION-BASED BEHAVIOR
+        // -------------------------
+        if (!_hasActiveSubscription)
+          const Padding(
+            padding: EdgeInsets.only(top: 16),
+            child: Text(
+              "Pretplatite se da biste posuđivali knjige.",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
+              textAlign: TextAlign.center,
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _hasActiveLoan ? Colors.grey : Colors.blue,
-              padding: const EdgeInsets.symmetric(vertical: 12),
+          )
+        else
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _hasActiveLoan ? null : _sendLoanRequest,
+              icon: const Icon(Icons.send),
+              label: Text(
+                _hasActiveLoan
+                    ? "Zahtjev već postoji"
+                    : "Pošalji zahtjev za posudbu",
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    _hasActiveLoan ? Colors.grey : Colors.blue,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -306,7 +356,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               Text(review.comment!),
             if (review.reviewDate != null)
               Text(
-                "${review.reviewDate!.toLocal().toString().split(' ')[0]}",
+                "${DateTimeHelper.formatDateTime(review.reviewDate!)}",
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
           ],

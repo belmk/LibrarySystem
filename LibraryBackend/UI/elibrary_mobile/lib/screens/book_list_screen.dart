@@ -6,12 +6,12 @@ import 'package:elibrary_mobile/providers/auth_provider.dart';
 import 'package:elibrary_mobile/providers/book_provider.dart';
 import 'package:elibrary_mobile/providers/genre_provider.dart';
 import 'package:elibrary_mobile/providers/book_loan_provider.dart';
-import 'package:elibrary_mobile/screens/book_details_screen.dart';
-import 'package:elibrary_mobile/screens/book_review_edit_screen.dart';
-import 'package:elibrary_mobile/screens/book_review_screen.dart';
 import 'package:elibrary_mobile/providers/book_review_provider.dart';
+import 'package:elibrary_mobile/screens/book_details_screen.dart';
+import 'package:elibrary_mobile/screens/book_review_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:elibrary_mobile/providers/recommendation_provider.dart';
 
 class BookListScreen extends StatefulWidget {
   const BookListScreen({Key? key}) : super(key: key);
@@ -26,6 +26,7 @@ class _BookListScreenState extends State<BookListScreen> {
   late BookLoanProvider _bookLoanProvider;
   late AuthProvider _authProvider;
   late BookReviewProvider _bookReviewProvider;
+  late RecommenderProvider _recommenderProvider;
 
   List<Book> _recommendedBooks = [];
   bool _isRecommendedLoading = true;
@@ -56,31 +57,35 @@ class _BookListScreenState extends State<BookListScreen> {
     _bookLoanProvider = context.read<BookLoanProvider>();
     _authProvider = context.read<AuthProvider>();
     _bookReviewProvider = context.read<BookReviewProvider>();
+    _recommenderProvider = context.read<RecommenderProvider>();
 
     _loadGenres();
-    _loadBooks(); 
-    _loadUserLoans(); 
+    _loadBooks();
+    _loadUserLoans();
     _loadRecommendedBooks();
   }
 
   Future<void> _loadRecommendedBooks() async {
-  setState(() {
-    _isRecommendedLoading = true;
-  });
+    setState(() {
+      _isRecommendedLoading = true;
+    });
 
-  if (_bookResult == null) {
-    await _loadBooks();
+    try {
+      final recommended = await _recommenderProvider.getRecommendedBooks(take: 3);
+      setState(() {
+        _recommendedBooks = recommended;
+      });
+    } catch (e) {
+      debugPrint("Failed to load recommended books: $e");
+      setState(() {
+        _recommendedBooks = [];
+      });
+    } finally {
+      setState(() {
+        _isRecommendedLoading = false;
+      });
+    }
   }
-
-  final allBooks = _bookResult?.result ?? [];
-
-  _recommendedBooks = allBooks.take(3).toList();
-
-  setState(() {
-    _isRecommendedLoading = false;
-  });
-}
-
 
   Future<void> _loadGenres() async {
     try {
@@ -155,39 +160,38 @@ class _BookListScreenState extends State<BookListScreen> {
     _loadBooks();
   }
 
-Widget _buildRecommendedSection() {
-  if (_isRecommendedLoading) {
-    return const Padding(
-      padding: EdgeInsets.all(20),
-      child: Center(child: CircularProgressIndicator()),
+  Widget _buildRecommendedSection() {
+    if (_isRecommendedLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_recommendedBooks.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Možda vam se svidi...",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Column(
+            children: _recommendedBooks.map(_buildBookCard).toList(),
+          ),
+        ],
+      ),
     );
   }
-
-  if (_recommendedBooks.isEmpty) {
-    return const SizedBox.shrink();
-  }
-
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Možda vam se svidi...",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        Column(
-          children: _recommendedBooks.take(3).map(_buildBookCard).toList(),
-        ),
-      ],
-    ),
-  );
-}
 
   Widget _buildBookCard(Book book) {
     ImageProvider imageProvider;
@@ -288,8 +292,7 @@ Widget _buildRecommendedSection() {
                           label: const Text("Detalji"),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 8),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                           ),
                         ),
                       ),
@@ -316,7 +319,6 @@ Widget _buildRecommendedSection() {
                                 });
 
                                 if (reviewResult.result.isNotEmpty) {
-                                  // user left a review
                                   final existingReview = reviewResult.result.first;
                                   showModalBottomSheet(
                                     context: context,
@@ -331,10 +333,7 @@ Widget _buildRecommendedSection() {
                                       ),
                                       child: SizedBox(
                                         height: MediaQuery.of(context).size.height * 0.75,
-                                        child: ExistingReviewScreen(
-                                          review: existingReview,
-                                          book: book,
-                                        ),
+                                        child: BookReviewScreen(book: book),
                                       ),
                                     ),
                                   );
@@ -383,7 +382,7 @@ Widget _buildRecommendedSection() {
     );
   }
 
- Widget _buildFilters() {
+  Widget _buildFilters() {
   return Padding(
     padding: const EdgeInsets.all(12.0),
     child: Column(
@@ -457,36 +456,36 @@ Widget _buildRecommendedSection() {
   );
 }
 
+Widget _buildPaginationControls() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 12),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          onPressed: _currentPage > 1
+              ? () {
+                  setState(() => _currentPage--);
+                  _loadBooks();
+                }
+              : null,
+          icon: const Icon(Icons.arrow_back),
+        ),
+        Text("Stranica $_currentPage od $_totalPages"),
+        IconButton(
+          onPressed: _currentPage < _totalPages
+              ? () {
+                  setState(() => _currentPage++);
+                  _loadBooks();
+                }
+              : null,
+          icon: const Icon(Icons.arrow_forward),
+        ),
+      ],
+    ),
+  );
+}
 
-  Widget _buildPaginationControls() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            onPressed: _currentPage > 1
-                ? () {
-                    setState(() => _currentPage--);
-                    _loadBooks();
-                  }
-                : null,
-            icon: const Icon(Icons.arrow_back),
-          ),
-          Text("Stranica $_currentPage od $_totalPages"),
-          IconButton(
-            onPressed: _currentPage < _totalPages
-                ? () {
-                    setState(() => _currentPage++);
-                    _loadBooks();
-                  }
-                : null,
-            icon: const Icon(Icons.arrow_forward),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
