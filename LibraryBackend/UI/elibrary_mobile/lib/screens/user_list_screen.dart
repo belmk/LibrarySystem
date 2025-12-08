@@ -1,3 +1,4 @@
+import 'package:elibrary_mobile/providers/auth_provider.dart';
 import 'package:elibrary_mobile/screens/create_complaint_screen.dart';
 import 'package:elibrary_mobile/screens/user_book_list_modal.dart';
 import 'package:elibrary_mobile/screens/user_review_screen.dart';
@@ -46,6 +47,7 @@ class _UserListScreenState extends State<UserListScreen> {
       final filter = {
         "username": _nameController.text.trim(),
         "email": _emailController.text.trim(),
+        "excludeUserId": context.read<AuthProvider>().currentUser?.id,
         "page": _currentPage - 1,
         "pageSize": _pageSize,
       };

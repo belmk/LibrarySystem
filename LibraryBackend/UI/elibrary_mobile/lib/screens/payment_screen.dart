@@ -21,7 +21,7 @@ class PayPalWebView extends StatefulWidget {
 
 class _PayPalWebViewState extends State<PayPalWebView> {
   late final WebViewController controller;
-  bool hasCaptured = false;
+  bool hasProcessed = false;
 
   @override
   void initState() {
@@ -32,47 +32,54 @@ class _PayPalWebViewState extends State<PayPalWebView> {
       ..setBackgroundColor(Colors.white)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageFinished: (url) async {
-            if (url.contains("/payments/success") && !hasCaptured) {
-              hasCaptured = true;
+          onNavigationRequest: (NavigationRequest request) {
+            final url = request.url;
 
-              final uri = Uri.parse(url);
-              final userId = uri.queryParameters["userId"];
-              final days = uri.queryParameters["days"];
-              final price = uri.queryParameters["price"];
-
-              await _verifyThenCapture(widget.orderId);
-
-              if (userId != null && days != null && price != null) {
-                await _saveSubscription(
-                  int.parse(userId),
-                  int.parse(days),
-                  double.parse(price),
-                );
-              }
-
-              if (mounted) Navigator.pop(context, true);
+            if (url.contains("/payments/success") && !hasProcessed) {
+              hasProcessed = true;
+              _handleSuccess(url);
+              return NavigationDecision.prevent;
             }
 
             if (url.contains("/payments/cancel")) {
-              if (mounted) {
-                Navigator.pop(context, false);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Plaćanje otkazano.")),
-                );
-              }
+              Navigator.pop(context, false);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Plaćanje otkazano.")),
+              );
+              return NavigationDecision.prevent;
             }
-          },
-          onNavigationRequest: (NavigationRequest request) {
+
             return NavigationDecision.navigate;
           },
-          onPageStarted: (url) => print(" Page started: $url"),
         ),
       )
       ..loadRequest(Uri.parse(widget.approvalUrl));
   }
 
-  Future<void> _verifyThenCapture(String orderId) async {
+  void _handleSuccess(String url) async {
+    try {
+      final uri = Uri.parse(url);
+
+      final userId = int.parse(uri.queryParameters["userId"]!);
+      final days = int.parse(uri.queryParameters["days"]!);
+      final price = double.parse(uri.queryParameters["price"]!);
+
+      await _verifyOrder(widget.orderId);
+      await _captureOrder(widget.orderId);
+      await _saveSubscription(userId, days, price);
+
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context, false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Greška pri obradi plaćanja: $e")),
+        );
+      }
+    }
+  }
+
+  Future<void> _verifyOrder(String orderId) async {
     final res = await http.get(
       Uri.parse("http://10.0.2.2:8080/payments/check-paypal-order/$orderId"),
     );
@@ -82,14 +89,11 @@ class _PayPalWebViewState extends State<PayPalWebView> {
     }
 
     final data = jsonDecode(res.body);
-    final status = data["status"] ??
-        data["purchase_units"]?[0]?["payments"]?["authorizations"]?[0]?["status"];
+    final status = data["status"];
 
     if (status != "APPROVED") {
-      throw Exception("Order not approved yet. Status: $status");
+      throw Exception("Order not approved. Status: $status");
     }
-
-    await _captureOrder(orderId);
   }
 
   Future<void> _captureOrder(String orderId) async {
@@ -99,42 +103,33 @@ class _PayPalWebViewState extends State<PayPalWebView> {
     );
 
     if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception("HTTP ${response.statusCode}: ${response.body}");
+      throw Exception("Capture failed → ${response.body}");
     }
 
     final data = jsonDecode(response.body);
     final status = _extractStatus(data);
 
     if (status != "COMPLETED") {
-      throw Exception("Capture exists but is not completed.");
+      throw Exception("Capture not completed → $status");
     }
   }
 
   Future<void> _saveSubscription(int userId, int days, double price) async {
-    try {
-      final provider = context.read<SubscriptionProvider>();
+    final provider = context.read<SubscriptionProvider>();
 
-      await provider.insert({
-        "userId": userId,
-        "days": days,
-        "price": price,
-        "startDate": DateTime.now().toIso8601String(),
-        "endDate": DateTime.now().add(Duration(days: days)).toIso8601String(),
-      });
+    await provider.insert({
+      "userId": userId,
+      "days": days,
+      "price": price,
+      "startDate": DateTime.now().toIso8601String(),
+      "endDate": DateTime.now().add(Duration(days: days)).toIso8601String(),
+    });
 
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Uplata uspješna! Pretplata aktivirana.")),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Greška pri kreiranju pretplate: $e")),
-        );
-      }
-    }
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Uplata uspješna! Pretplata aktivirana.")),
+    );
   }
 
   String? _extractStatus(dynamic json) {

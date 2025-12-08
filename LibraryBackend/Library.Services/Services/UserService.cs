@@ -59,6 +59,11 @@ namespace Library.Services.Services
                     x.RegistrationDate.Date == dateTimeValue.Date);
             }
 
+            if (search.ExcludeUserId.HasValue)
+            {
+                filteredQuery = filteredQuery.Where(x => x.Id != search.ExcludeUserId.Value);
+            }
+
 
             return filteredQuery;
         }

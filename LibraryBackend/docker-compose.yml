@@ -19,6 +19,9 @@ services:
       Rabbit__Host: ${Rabbit__Host}
       Rabbit__Username: ${Rabbit__User}
       Rabbit__Password: ${Rabbit__Pass}
+      PayPal__ClientId: ${PayPal__ClientId}
+      PayPal__Secret: ${PayPal__Secret}
+      PayPal__BaseUrl: ${PayPal__BaseUrl}
     ports:
       - "8080:8080"
       - "8081:8081"
