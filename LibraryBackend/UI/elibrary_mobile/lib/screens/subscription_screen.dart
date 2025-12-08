@@ -115,9 +115,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       ),
       builder: (context) {
         final plans = [
-          {"id": 1, "label": "7 dana - 10 €", "price": 10.0, "days": 7},
-          {"id": 2, "label": "1 mjesec - 30 €", "price": 30.0, "days": 30},
-          {"id": 3, "label": "3 mjeseca - 50 €", "price": 50.0, "days": 90},
+          {"id": 1, "label": "7 dana - 10 KM", "price": 10.0, "days": 7},
+          {"id": 2, "label": "1 mjesec - 30 KM", "price": 30.0, "days": 30},
+          {"id": 3, "label": "3 mjeseca - 50 KM", "price": 50.0, "days": 90},
         ];
 
         Map<String, dynamic>? selectedPlan;
@@ -187,6 +187,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final approvalUrl = data["approvalUrl"];
     final orderId = data["orderId"];
 
+    Navigator.pop(context);
+    
     await Navigator.push(
       context,
       MaterialPageRoute(

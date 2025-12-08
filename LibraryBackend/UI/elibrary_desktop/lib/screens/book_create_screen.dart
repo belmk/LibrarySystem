@@ -1,3 +1,4 @@
+import 'package:elibrary_desktop/screens/author_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:elibrary_desktop/models/genre.dart';
 import 'package:elibrary_desktop/models/author.dart';
@@ -109,13 +110,6 @@ class _BookFormScreenState extends State<BookFormScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedAuthorId == null || _selectedGenreIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Molimo izaberite autora i barem jedan žanr.")),
-      );
-      return;
-    }
-
     final dto = {
       "AuthorId": _selectedAuthorId,
       "Title": _titleController.text.trim(),
@@ -156,158 +150,233 @@ class _BookFormScreenState extends State<BookFormScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.book == null ? "Dodaj novu knjigu" : "Uredi knjigu"),
-      content: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxHeight: 600,
-          maxWidth: 500,
-        ),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: _titleController,
-                  decoration: const InputDecoration(labelText: 'Naslov'),
-                  validator: (value) => value == null || value.isEmpty ? "Unesite naslov" : null,
+Widget build(BuildContext context) {
+  return AlertDialog(
+    title: Text(widget.book == null ? "Dodaj novu knjigu" : "Uredi knjigu"),
+    content: ConstrainedBox(
+      constraints: const BoxConstraints(
+        maxHeight: 600,
+        maxWidth: 500,
+      ),
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.disabled, 
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(labelText: 'Naslov'),
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (value) =>
+                    value == null || value.isEmpty ? "Unesite naslov" : null,
+              ),
+
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Opis'),
+                maxLines: 3,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (value) =>
+                    value == null || value.trim().isEmpty
+                        ? "Opis je obavezan"
+                        : null,
+              ),
+
+              TextFormField(
+                controller: _pageNumberController,
+                decoration: const InputDecoration(labelText: 'Broj stranica'),
+                keyboardType: TextInputType.number,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (value) =>
+                    (value == null || int.tryParse(value) == null)
+                        ? "Unesite validan broj"
+                        : null,
+              ),
+
+              TextFormField(
+                controller: _availableNumberController,
+                decoration:
+                    const InputDecoration(labelText: 'Dostupno primjeraka'),
+                keyboardType: TextInputType.number,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (value) =>
+                    (value == null || int.tryParse(value) == null)
+                        ? "Unesite validan broj"
+                        : null,
+              ),
+
+              const SizedBox(height: 16),
+
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Naslovna slika",
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(labelText: 'Opis'),
-                  maxLines: 3,
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                ),
-                TextFormField(
-                  controller: _pageNumberController,
-                  decoration: const InputDecoration(labelText: 'Broj stranica'),
-                  keyboardType: TextInputType.number,
-                  validator: (value) =>
-                      (value == null || int.tryParse(value) == null)
-                          ? "Unesite validan broj"
-                          : null,
-                ),
-                TextFormField(
-                  controller: _availableNumberController,
-                  decoration: const InputDecoration(labelText: 'Dostupno primjeraka'),
-                  keyboardType: TextInputType.number,
-                  validator: (value) =>
-                      (value == null || int.tryParse(value) == null)
-                          ? "Unesite validan broj"
-                          : null,
-                ),
-                const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text("Naslovna slika", style: Theme.of(context).textTheme.titleMedium),
+              ),
+              const SizedBox(height: 8),
+
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  height: 180,
+                  width: double.maxFinite,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.grey[100],
                   ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      height: 180,
-                      width: double.maxFinite,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8),
-                        color: Colors.grey[100],
-                      ),
-                      child: _selectedImage != null
+                  child: _selectedImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(
+                            _selectedImage!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          ),
+                        )
+                      : (_imageBase64 != null && _imageBase64!.isNotEmpty)
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: Image.file(
-                                _selectedImage!,
+                              child: Image.memory(
+                                base64Decode(_imageBase64!),
                                 fit: BoxFit.cover,
                                 width: double.infinity,
                               ),
                             )
-                          : (_imageBase64 != null && _imageBase64!.isNotEmpty)
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.memory(
-                                    base64Decode(_imageBase64!),
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                  ),
-                                )
-                              : Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
-                                      Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
-                                      SizedBox(height: 8),
-                                      Text("Kliknite da izaberete sliku"),
-                                    ],
-                                  ),
-                                ),
+                          : const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_a_photo,
+                                      size: 40, color: Colors.grey),
+                                  SizedBox(height: 8),
+                                  Text("Kliknite da izaberete sliku"),
+                                ],
+                              ),
+                            ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<int>(
+                      value: _selectedAuthorId,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      decoration: const InputDecoration(labelText: 'Autor'),
+                      items: _authors.map((author) {
+                        final name =
+                            "${author.firstName} ${author.lastName}";
+                        return DropdownMenuItem<int>(
+                          value: author.id,
+                          child: Text(name),
+                        );
+                      }).toList(),
+                      onChanged: (value) =>
+                          setState(() => _selectedAuthorId = value),
+                      validator: (value) =>
+                          value == null ? "Izaberite autora" : null,
                     ),
                   ),
+                  const SizedBox(width: 10),
+                  IconButton(
+                    icon: const Icon(Icons.add, size: 28),
+                    tooltip: "Dodaj autora",
+                    onPressed: () async {
+                      final added = await showDialog(
+                        context: context,
+                        builder: (_) => const AuthorScreen(),
+                      );
+                      if (added == true) {
+                        await _loadAuthorsAndGenres();
+                      }
+                    },
+                  ),
+                ],
+              ),
 
-                const SizedBox(height: 12),
-                DropdownButtonFormField<int>(
-                  value: _selectedAuthorId,
-                  items: _authors.map((author) {
-                    final name = "${author.firstName} ${author.lastName}";
-                    return DropdownMenuItem<int>(
-                      value: author.id,
-                      child: Text(name),
-                    );
-                  }).toList(),
-                  onChanged: (value) => setState(() => _selectedAuthorId = value),
-                  decoration: const InputDecoration(labelText: 'Autor'),
-                  validator: (value) => value == null ? "Izaberite autora" : null,
+              const SizedBox(height: 12),
+
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text("Žanrovi",
+                    style: Theme.of(context).textTheme.titleMedium),
+              ),
+
+              FormField<List<int>>(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (value) => _selectedGenreIds.isEmpty
+                    ? "Izaberite barem jedan žanr"
+                    : null,
+                builder: (state) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 8.0,
+                      children: _genres.map((genre) {
+                        final isSelected =
+                            _selectedGenreIds.contains(genre.id);
+                        return FilterChip(
+                          label: Text(genre.name ?? "Nepoznat"),
+                          selected: isSelected,
+                          showCheckmark: false,
+                          selectedColor: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.3),
+                          onSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                _selectedGenreIds.add(genre.id!);
+                              } else {
+                                _selectedGenreIds.remove(genre.id);
+                              }
+                              state.didChange(_selectedGenreIds);
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    if (state.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5),
+                        child: Text(
+                          state.errorText!,
+                          style: const TextStyle(
+                              color: Colors.red, fontSize: 12),
+                        ),
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text("Žanrovi", style: Theme.of(context).textTheme.titleMedium),
-                ),
-                Wrap(
-                  spacing: 8.0,
-                  children: _genres.map((genre) {
-                    final isSelected = _selectedGenreIds.contains(genre.id);
-                    return FilterChip(
-                      label: Text(genre.name ?? "Nepoznat"),
-                      selected: isSelected,
-                      showCheckmark: false, // Only changes color on select
-                      selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                      onSelected: (selected) {
-                        setState(() {
-                          if (selected) {
-                            _selectedGenreIds.add(genre.id!);
-                          } else {
-                            _selectedGenreIds.remove(genre.id);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
-          child: const Text("Otkaži"),
-        ),
-        ElevatedButton(
-          onPressed: _isSubmitting ? null : _submit,
-          child: _isSubmitting
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(widget.book == null ? "Dodaj" : "Spremi"),
-        ),
-      ],
-    );
-  }
+    ),
+    actions: [
+      TextButton(
+        onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
+        child: const Text("Otkaži"),
+      ),
+      ElevatedButton(
+        onPressed: _isSubmitting ? null : _submit,
+        child: _isSubmitting
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Text(widget.book == null ? "Dodaj" : "Spremi"),
+      ),
+    ],
+  );
+}
 }

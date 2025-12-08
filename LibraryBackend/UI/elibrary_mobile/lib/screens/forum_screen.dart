@@ -7,6 +7,7 @@ import 'package:elibrary_mobile/providers/forum_thread_provider.dart';
 import 'package:elibrary_mobile/providers/forum_comment_provider.dart';
 import 'package:elibrary_mobile/providers/book_provider.dart';
 import 'package:elibrary_mobile/providers/user_provider.dart';
+import 'package:elibrary_mobile/utils/datetime_helper.dart';
 
 class MobileForumScreen extends StatefulWidget {
   const MobileForumScreen({super.key});
@@ -96,17 +97,29 @@ class _MobileForumScreenState extends State<MobileForumScreen> {
 
   void _showAddCommentDialog(int threadId) {
     final controller = TextEditingController();
+    String? error;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
         title: const Text("Dodaj komentar"),
-        content: TextField(
-          controller: controller,
-          maxLines: 4,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: "Vaš komentar...",
+        content: SizedBox(
+          width: 350,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller,
+                maxLines: 4,
+                onChanged: (_) => setState(() => error = null),
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  hintText: "Vaš komentar...",
+                  errorText: error,
+                ),
+              ),
+            ],
           ),
         ),
         actions: [
@@ -117,7 +130,10 @@ class _MobileForumScreenState extends State<MobileForumScreen> {
           ElevatedButton(
             child: const Text("Objavi"),
             onPressed: () async {
-              if (controller.text.trim().isEmpty) return;
+              if (controller.text.trim().isEmpty) {
+                setState(() => error = "Komentar je obavezan.");
+                return;
+              }
 
               try {
                 await _commentProvider.insert({
@@ -146,6 +162,8 @@ class _MobileForumScreenState extends State<MobileForumScreen> {
     final title = TextEditingController();
     Book? selectedBook;
     List<Book> books = [];
+    String? titleError;
+    String? bookError;
 
     showDialog(
       context: context,
@@ -159,32 +177,43 @@ class _MobileForumScreenState extends State<MobileForumScreen> {
 
           return AlertDialog(
             title: const Text("Nova tema"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: title,
-                  decoration: const InputDecoration(
-                    labelText: "Naslov",
-                    border: OutlineInputBorder(),
+            content: SizedBox(
+              width: 350,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: title,
+                    onChanged: (_) => setState(() => titleError = null),
+                    decoration: InputDecoration(
+                      labelText: "Naslov",
+                      border: const OutlineInputBorder(),
+                      errorText: titleError,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<Book>(
-                  value: selectedBook,
-                  items: books
-                      .map((b) => DropdownMenuItem(
-                            value: b,
-                            child: Text(b.title ?? "-"),
-                          ))
-                      .toList(),
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Knjiga",
-                  ),
-                  onChanged: (b) => setState(() => selectedBook = b),
-                )
-              ],
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<Book>(
+                    value: selectedBook,
+                    items: books
+                        .map((b) => DropdownMenuItem(
+                              value: b,
+                              child: Text(b.title ?? "-"),
+                            ))
+                        .toList(),
+                    onChanged: (b) {
+                      setState(() {
+                        selectedBook = b;
+                        bookError = null;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: "Knjiga",
+                      errorText: bookError,
+                    ),
+                  )
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -194,7 +223,19 @@ class _MobileForumScreenState extends State<MobileForumScreen> {
               ElevatedButton(
                 child: const Text("Objavi"),
                 onPressed: () async {
-                  if (title.text.isEmpty || selectedBook == null) return;
+                  bool valid = true;
+
+                  if (title.text.trim().isEmpty) {
+                    setState(() => titleError = "Naslov je obavezan.");
+                    valid = false;
+                  }
+
+                  if (selectedBook == null) {
+                    setState(() => bookError = "Knjiga je obavezna.");
+                    valid = false;
+                  }
+
+                  if (!valid) return;
 
                   await _threadProvider.insert({
                     "Title": title.text.trim(),
@@ -214,67 +255,61 @@ class _MobileForumScreenState extends State<MobileForumScreen> {
     );
   }
 
- Widget _buildFilterSection() {
-  return Padding(
-    padding: const EdgeInsets.all(12.0),
-    child: Column(
-      children: [
-        TextField(
-          controller: _titleFilter,
-          decoration: const InputDecoration(
-            labelText: 'Naslov teme',
-            prefixIcon: Icon(Icons.forum_outlined),
-            border: OutlineInputBorder(),
-            isDense: true,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        TextField(
-          controller: _bookFilter,
-          decoration: const InputDecoration(
-            labelText: 'Knjiga',
-            prefixIcon: Icon(Icons.menu_book_outlined),
-            border: OutlineInputBorder(),
-            isDense: true,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        TextField(
-          controller: _userFilter,
-          decoration: const InputDecoration(
-            labelText: 'Korisnik',
-            prefixIcon: Icon(Icons.person_outline),
-            border: OutlineInputBorder(),
-            isDense: true,
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            IconButton(
-              onPressed: () {
-                setState(() => _currentPage = 1);
-                _loadThreads();
-              },
-              icon: const Icon(Icons.search, color: Colors.blueAccent),
-              tooltip: 'Pretraži',
+  Widget _buildFilterSection() {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        children: [
+          TextField(
+            controller: _titleFilter,
+            decoration: const InputDecoration(
+              labelText: 'Naslov teme',
+              prefixIcon: Icon(Icons.forum_outlined),
+              border: OutlineInputBorder(),
+              isDense: true,
             ),
-            IconButton(
-              onPressed: _resetFilters,
-              icon: const Icon(Icons.refresh, color: Colors.grey),
-              tooltip: 'Resetuj filtere',
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _bookFilter,
+            decoration: const InputDecoration(
+              labelText: 'Knjiga',
+              prefixIcon: Icon(Icons.menu_book_outlined),
+              border: OutlineInputBorder(),
+              isDense: true,
             ),
-          ],
-        ),
-      ],
-    ),
-  );
-}
-
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _userFilter,
+            decoration: const InputDecoration(
+              labelText: 'Korisnik',
+              prefixIcon: Icon(Icons.person_outline),
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(
+                onPressed: () {
+                  setState(() => _currentPage = 1);
+                  _loadThreads();
+                },
+                icon: const Icon(Icons.search, color: Colors.blueAccent),
+              ),
+              IconButton(
+                onPressed: _resetFilters,
+                icon: const Icon(Icons.refresh, color: Colors.grey),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildPaginationControls() {
     return Padding(
@@ -315,23 +350,37 @@ class _MobileForumScreenState extends State<MobileForumScreen> {
       child: ExpansionTile(
         title: Text(
           t.title ?? "-",
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          "Knjiga: ${t.book?.title ?? '-'}\nAutor: ${t.user?.username ?? '-'}",
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.book, size: 16),
+                const SizedBox(width: 4),
+                Text(t.book?.title ?? "-"),
+              ],
+            ),
+            Row(
+              children: [
+                const Icon(Icons.person, size: 16),
+                const SizedBox(width: 4),
+                Text(t.user?.username ?? "-"),
+              ],
+            ),
+          ],
         ),
         children: [
           ...comments.map(
             (c) => ListTile(
               leading: const Icon(Icons.comment),
               title: Text(c.comment ?? ""),
-              subtitle: Text("${c.user?.username} — ${c.commentDate}"),
+              subtitle: Text(
+                "${c.user?.username} — ${DateTimeHelper.formatDateTime(c.commentDate)}",
+              ),
             ),
           ),
-
           TextButton.icon(
             icon: const Icon(Icons.add_comment),
             label: const Text("Dodaj komentar"),
@@ -370,7 +419,6 @@ class _MobileForumScreenState extends State<MobileForumScreen> {
               )
             else
               ..._threads.map(_buildThreadCard),
-
             _buildPaginationControls(),
           ],
         ),

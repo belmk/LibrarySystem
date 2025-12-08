@@ -42,6 +42,11 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
   String? _imageBase64;
   String? _imageFormat;
 
+  String? _titleError;
+  String? _pageNumberError;
+  String? _authorError;
+  String? _genreError;
+
   late BookProvider _bookProvider;
   late AuthorProvider _authorProvider;
   late GenreProvider _genreProvider;
@@ -103,14 +108,25 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    bool valid = true;
 
-    if (_selectedAuthorId == null || _selectedGenreIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Molimo izaberite autora i barem jedan žanr.")),
-      );
-      return;
-    }
+    setState(() {
+      _titleError =
+          _titleController.text.trim().isEmpty ? "Unesite naslov" : null;
+      _pageNumberError = (_pageNumberController.text.trim().isEmpty ||
+              int.tryParse(_pageNumberController.text.trim()) == null)
+          ? "Unesite validan broj"
+          : null;
+      _authorError = _selectedAuthorId == null ? "Izaberite autora" : null;
+      _genreError = _selectedGenreIds.isEmpty ? "Izaberite bar jedan žanr" : null;
+
+      valid = _titleError == null &&
+          _pageNumberError == null &&
+          _authorError == null &&
+          _genreError == null;
+    });
+
+    if (!valid) return;
 
     final dto = {
       "AuthorId": _selectedAuthorId,
@@ -137,7 +153,9 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
       if (mounted) {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isEditing ? "Knjiga ažurirana." : "Knjiga uspješno dodana.")),
+          SnackBar(
+              content:
+                  Text(isEditing ? "Knjiga ažurirana." : "Knjiga uspješno dodana.")),
         );
       }
     } catch (e) {
@@ -149,27 +167,42 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
   }
 
   Widget _buildGenreChips() {
-    return Wrap(
-      spacing: 8,
-      children: _genres.map((genre) {
-        final selected = _selectedGenreIds.contains(genre.id);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          children: _genres.map((genre) {
+            final selected = _selectedGenreIds.contains(genre.id);
 
-        return FilterChip(
-          label: Text(genre.name ?? ""),
-          selected: selected,
-          showCheckmark: false,
-          selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.25),
-          onSelected: (value) {
-            setState(() {
-              if (value) {
-                _selectedGenreIds.add(genre.id!);
-              } else {
-                _selectedGenreIds.remove(genre.id);
-              }
-            });
-          },
-        );
-      }).toList(),
+            return FilterChip(
+              label: Text(genre.name ?? ""),
+              selected: selected,
+              showCheckmark: false,
+              selectedColor:
+                  Theme.of(context).colorScheme.primary.withOpacity(0.25),
+              onSelected: (value) {
+                setState(() {
+                  if (value) {
+                    _selectedGenreIds.add(genre.id!);
+                  } else {
+                    _selectedGenreIds.remove(genre.id);
+                  }
+                  _genreError = _selectedGenreIds.isEmpty ? "Izaberite bar jedan žanr" : null;
+                });
+              },
+            );
+          }).toList(),
+        ),
+        if (_genreError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              _genreError!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
+            ),
+          ),
+      ],
     );
   }
 
@@ -186,125 +219,124 @@ class _BookCreateScreenState extends State<BookCreateScreen> {
           else
             SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: "Naslov",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (v) => v == null || v.isEmpty ? "Unesite naslov" : null,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _titleController,
+                    onChanged: (_) => setState(() => _titleError = null),
+                    decoration: InputDecoration(
+                      labelText: "Naslov",
+                      border: const OutlineInputBorder(),
+                      errorText: _titleError,
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _descriptionController,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: "Opis",
-                        border: OutlineInputBorder(),
-                      ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _descriptionController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: "Opis",
+                      border: OutlineInputBorder(),
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _pageNumberController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Broj stranica",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) =>
-                          (value == null || int.tryParse(value) == null)
-                              ? "Unesite validan broj"
-                              : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _pageNumberController,
+                    keyboardType: TextInputType.number,
+                    onChanged: (_) => setState(() => _pageNumberError = null),
+                    decoration: InputDecoration(
+                      labelText: "Broj stranica",
+                      border: const OutlineInputBorder(),
+                      errorText: _pageNumberError,
                     ),
-                    const SizedBox(height: 24),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Naslovna slika",
-                          style: Theme.of(context).textTheme.titleMedium),
-                    ),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        height: 180,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.grey.shade400),
-                          color: Colors.grey.shade100,
-                        ),
-                        child: _selectedImage != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.file(_selectedImage!, fit: BoxFit.cover),
-                              )
-                            : (_imageBase64 != null)
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.memory(
-                                      base64Decode(_imageBase64!),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  )
-                                : const Center(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.add_a_photo, size: 40),
-                                        SizedBox(height: 8),
-                                        Text("Dodajte sliku"),
-                                      ],
-                                    ),
-                                  ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    DropdownButtonFormField<int>(
-                      value: _selectedAuthorId,
-                      decoration: const InputDecoration(
-                        labelText: "Autor",
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _authors
-                          .map((author) => DropdownMenuItem<int>(
-                                value: author.id,
-                                child: Text("${author.firstName} ${author.lastName}"),
-                              ))
-                          .toList(),
-                      onChanged: (v) => setState(() => _selectedAuthorId = v),
-                      validator: (v) => v == null ? "Izaberite autora" : null,
-                    ),
-                    const SizedBox(height: 24),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Žanrovi",
-                          style: Theme.of(context).textTheme.titleMedium),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildGenreChips(),
-                    const SizedBox(height: 30),
-                    SizedBox(
+                  ),
+                  const SizedBox(height: 24),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Naslovna slika",
+                        style: Theme.of(context).textTheme.titleMedium),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      height: 180,
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isSubmitting ? null : _submit,
-                        child: _isSubmitting
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text(isEditing ? "Sačuvaj promjene" : "Dodaj knjigu"),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.grey.shade400),
+                        color: Colors.grey.shade100,
                       ),
+                      child: _selectedImage != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                            )
+                          : (_imageBase64 != null)
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.memory(
+                                    base64Decode(_imageBase64!),
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : const Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.add_a_photo, size: 40),
+                                      SizedBox(height: 8),
+                                      Text("Dodajte sliku"),
+                                    ],
+                                  ),
+                                ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 24),
+                  DropdownButtonFormField<int>(
+                    value: _selectedAuthorId,
+                    decoration: InputDecoration(
+                      labelText: "Autor",
+                      border: const OutlineInputBorder(),
+                      errorText: _authorError,
+                    ),
+                    items: _authors
+                        .map((author) => DropdownMenuItem<int>(
+                              value: author.id,
+                              child: Text("${author.firstName} ${author.lastName}"),
+                            ))
+                        .toList(),
+                    onChanged: (v) => setState(() {
+                      _selectedAuthorId = v;
+                      _authorError = null;
+                    }),
+                  ),
+                  const SizedBox(height: 24),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Žanrovi",
+                        style: Theme.of(context).textTheme.titleMedium),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildGenreChips(),
+                  const SizedBox(height: 30),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isSubmitting ? null : _submit,
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(isEditing ? "Sačuvaj promjene" : "Dodaj knjigu"),
+                    ),
+                  ),
+                ],
               ),
             ),
         ],

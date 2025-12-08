@@ -111,7 +111,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
 Future<void> _generateReport() async {
-  // Fetch all data
   final topBooks = await _provider.getTopBorrowedBooks(_topX);
   final topUsers = await _provider.getTopActiveUsers(_topX);
   final topRatedBooks = await _provider.getTopRatedBooks(_topX);
@@ -121,7 +120,6 @@ Future<void> _generateReport() async {
 
   final pdf = pw.Document();
 
-  // Common table style
   final tableHeaderStyle = pw.TextStyle(
     fontWeight: pw.FontWeight.bold,
     fontSize: 12,
@@ -130,6 +128,34 @@ Future<void> _generateReport() async {
   final tableCellStyle = pw.TextStyle(
     fontSize: 11,
   );
+
+  final now = DateTime.now();
+  final keyFormatter = DateFormat('MM/yyyy');
+  final labelFormatter = DateFormat('MMM');
+
+  final Map<String, int> loanMap = {
+    for (var e in borrowStats) e.month: e.count
+  };
+
+  final filledLoanData = List.generate(_lastXMonths, (i) {
+    final date = DateTime(now.year, now.month - (_lastXMonths - 1 - i));
+    final monthKey = keyFormatter.format(date);
+    final monthLabel = labelFormatter.format(date);
+
+    return [monthLabel, (loanMap[monthKey] ?? 0).toString()];
+  });
+
+  final Map<String, int> profitMap = {
+    for (var e in profitStats) e.month: e.count
+  };
+
+  final filledProfitData = List.generate(_lastXMonths, (i) {
+    final date = DateTime(now.year, now.month - (_lastXMonths - 1 - i));
+    final monthKey = keyFormatter.format(date);
+    final monthLabel = labelFormatter.format(date);
+
+    return [monthLabel, (profitMap[monthKey] ?? 0).toString()];
+  });
 
   pdf.addPage(
     pw.MultiPage(
@@ -152,7 +178,6 @@ Future<void> _generateReport() async {
         ),
         pw.Divider(height: 20, thickness: 2),
 
-        // Top Borrowed Books
         pw.Text('Top $_topX najposudjenijih knjiga',
             style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 8),
@@ -164,7 +189,6 @@ Future<void> _generateReport() async {
         ),
         pw.SizedBox(height: 15),
 
-        // Top Active Users
         pw.Text('Top $_topX najaktivnijih korisnika',
             style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 8),
@@ -176,53 +200,54 @@ Future<void> _generateReport() async {
         ),
         pw.SizedBox(height: 15),
 
-        // Top Rated Books
         pw.Text('Top $_topX ocijenjenih knjiga',
             style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 8),
         _buildTable(
           headers: ['Knjiga', 'Ocjena (broj ocjena)'],
           data: topRatedBooks
-              .map((e) => ['${e.name} (${e.totalRatings})', e.avgRating.toStringAsFixed(2)])
+              .map(
+                (e) => ['${e.name} (${e.totalRatings})', e.avgRating.toStringAsFixed(2)],
+              )
               .toList(),
           headerStyle: tableHeaderStyle,
           cellStyle: tableCellStyle,
         ),
         pw.SizedBox(height: 15),
 
-        // Top Rated Users
         pw.Text('Top $_topX ocijenjenih korisnika',
             style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 8),
         _buildTable(
           headers: ['Korisnik', 'Ocjena (broj ocjena)'],
           data: topRatedUsers
-              .map((e) => ['${e.name} (${e.totalRatings})', e.avgRating.toStringAsFixed(2)])
+              .map(
+                (e) => ['${e.name} (${e.totalRatings})', e.avgRating.toStringAsFixed(2)],
+              )
               .toList(),
           headerStyle: tableHeaderStyle,
           cellStyle: tableCellStyle,
         ),
-        // Let MultiPage automatically break pages if needed
 
-        // Borrow Stats
+        pw.SizedBox(height: 15),
         pw.Text('Broj posudbi u zadnjih $_lastXMonths mjeseci',
             style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 8),
         _buildTable(
           headers: ['Mjesec', 'Posudbi'],
-          data: borrowStats.map((e) => [e.month, e.count.toString()]).toList(),
+          data: filledLoanData, 
           headerStyle: tableHeaderStyle,
           cellStyle: tableCellStyle,
         ),
-        pw.SizedBox(height: 15),
 
-        // Profit Stats
+       
+        pw.SizedBox(height: 15),
         pw.Text('Zarade u zadnjih $_lastXMonths mjeseci',
             style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 8),
         _buildTable(
           headers: ['Mjesec', 'Zarada'],
-          data: profitStats.map((e) => [e.month, e.count.toString()]).toList(),
+          data: filledProfitData,
           headerStyle: tableHeaderStyle,
           cellStyle: tableCellStyle,
         ),
@@ -237,7 +262,7 @@ Future<void> _generateReport() async {
   );
 }
 
-/// Helper function for table creation
+
 pw.Widget _buildTable({
   required List<String> headers,
   required List<List<String>> data,

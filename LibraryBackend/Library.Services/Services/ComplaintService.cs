@@ -19,25 +19,32 @@ namespace Library.Services.Services
     public class ComplaintService : BaseCRUDService<ComplaintDto, Complaint, ComplaintSearchObject, ComplaintInsertDto, ComplaintUpdateDto>, IComplaintService
     {
         private readonly IActivityService _activityService;
+        private readonly LibraryDbContext _context;
 
         public ComplaintService(LibraryDbContext context, IMapper mapper, IActivityService activityService) : base(context, mapper) 
         {
             _activityService = activityService;
+            _context = context;
         }
 
         public override async Task BeforeInsert(Complaint entity, ComplaintInsertDto insert)
         {
             await base.BeforeInsert(entity, insert);
 
+            entity.Sender = await _context.Users.FirstOrDefaultAsync(u => u.Id == entity.SenderId);
+            entity.Target = await _context.Users.FirstOrDefaultAsync(u => u.Id == insert.TargetId);
+
             var activity = new ActivityInsertDto
             {
                 UserId = entity.SenderId,
-                Description = $"Poslao/la žalbu protiv {entity.Target.Username} ({entity.Target.Email}): \"{entity.Reason}\"",
+                Description =
+                    $"Poslao/la žalbu protiv {entity.Target.Username} ({entity.Target.Email}): \"{entity.Reason}\"",
                 ActivityDate = DateTime.UtcNow,
             };
 
             await _activityService.Insert(activity);
         }
+
 
         public override IQueryable<Complaint> AddFilter(IQueryable<Complaint> query, ComplaintSearchObject? search = null)
         {
