@@ -264,6 +264,7 @@ const SizedBox(width: 8),
             );
             _loadUsers();
           } catch (e) {
+            print('Error in onSave update: $e');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("Greška pri ažuriranju korisnika: $e")),
             );
